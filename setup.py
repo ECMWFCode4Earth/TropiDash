@@ -21,7 +21,7 @@ install_requires = ["numpy"]
 tests_require = ["pytest"]
 
 meta = {}
-exec(read("PACKAGE_NAME/__meta__.py"), meta)
+exec(read("TropiDash/__meta__.py"), meta)
 
 
 setuptools.setup(
