@@ -12,7 +12,7 @@ Demo tests for raw template.
 
 import unittest
 
-from PACKAGE_NAME.sample import speed_direction_to_uv
+from TropiDash.sample import speed_direction_to_uv
 
 
 class TestSpeedDirectionToUV(unittest.TestCase):
