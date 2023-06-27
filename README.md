@@ -1,9 +1,10 @@
 # TropiDash: towards a comprehensive tropical cyclone hazard dashboard
 ---
+ECMWF Code for Earth 2023 project
 
 ## Team
-Filippo Dainelli - filippo.dainelli@polimi.it
-Paolo Colombo - paolo1.colombo@polimi.it
+Filippo Dainelli - filippo.dainelli@polimi.it\
+Paolo Colombo - paolo1.colombo@polimi.it\
 Laura Paredes Fortuny - paredes_laufor@externos.gva.es
 
 ## Project abstract
