@@ -99,8 +99,9 @@ def mean_forecast_track(df_storm):
     for t in range(len(df_lat_tracks)):
         lat = df_lat_tracks.iloc[t].dropna().to_numpy()
         lon = df_lon_tracks.iloc[t].dropna().to_numpy()
-        mean_lat_lon = meanposit(len(lat), lat, lon)
-        mean_track_coord.append(mean_lat_lon)
+        if len(lat) > 0:
+            mean_lat_lon = meanposit(len(lat), lat, lon)
+            mean_track_coord.append(mean_lat_lon)
         
     return mean_track_coord
 
