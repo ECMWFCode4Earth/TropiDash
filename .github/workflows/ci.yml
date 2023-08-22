@@ -32,6 +32,7 @@ jobs:
     uses: ecmwf-actions/reusable-workflows/.github/workflows/ci-python.yml@v1
     with:
       # codecov_upload: true
+      # isort: off
       skip_matrix_jobs: |
         clang-12@ubuntu-20.04
         clang-9@ubuntu-18.04

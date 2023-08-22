@@ -1,4 +1,4 @@
-# isort off
+# isort: off
 
 import pdbufr
 import sys
