@@ -8,7 +8,7 @@
 
 """
 Demo tests for raw template.
-"""
+
 
 import unittest
 
@@ -35,3 +35,4 @@ class TestSpeedDirectionToUV(unittest.TestCase):
         wind_u, wind_v = speed_direction_to_uv(10, 90)
         self.assertAlmostEqual(wind_u, 0)
         self.assertEqual(wind_v, 10)
+"""
