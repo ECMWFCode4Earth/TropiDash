@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+ # isort: off
 #!/usr/bin/env python3
 #
 # (C) Copyright 1996- ECMWF.
@@ -8,10 +10,6 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-
- # isort: off
-
- 
 
 import argparse
 import pickle

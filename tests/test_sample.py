@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # (C) Copyright 1996- ECMWF.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0
@@ -6,8 +7,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
-"""
-Demo tests for raw template.
+#Demo tests for raw template.
 
 
 import unittest
@@ -35,4 +35,3 @@ class TestSpeedDirectionToUV(unittest.TestCase):
         wind_u, wind_v = speed_direction_to_uv(10, 90)
         self.assertAlmostEqual(wind_u, 0)
         self.assertEqual(wind_v, 10)
-"""

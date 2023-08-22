@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # isort: off
 
 import pdbufr
