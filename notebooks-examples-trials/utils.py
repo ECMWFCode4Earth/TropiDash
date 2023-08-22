@@ -1,3 +1,5 @@
+# isort off
+
 import pdbufr
 import sys
 import traceback
