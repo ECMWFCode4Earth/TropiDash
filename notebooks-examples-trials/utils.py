@@ -327,11 +327,11 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
 
     # Define forecasted tracks polyline element for the map
     colours = ["red", "blue", "green", "yellow", "purple", "orange", "cyan", "brown"]
-    tracks_layer = []
-    markers_layer = []
+    tracks_layer_group = ipyleaflet.LayerGroup()
+    markers_layer_group = ipyleaflet.LayerGroup()
     colour = 0
     for locs in locations_f:
-
+        
         track = ipyleaflet.Polyline(
             locations=locs,
             color= colours[colour],
@@ -341,6 +341,7 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
         )
 
         markers = [ipyleaflet.CircleMarker(location=loc, radius=1, color=colours[colour]) for loc in locs]
+        # markers = [ipyleaflet.CircleMarker(location=loc, radius=1, color=colours[colour], popup=widgets.HTML(value=f'Latitude: {loc[0]} \nLongitude: {loc[1]}')) for loc in locs]
 
         colour += 1
         if colour == len(colours):
@@ -348,8 +349,8 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
 
         marker_layer = ipyleaflet.LayerGroup(layers=markers)
 
-        tracks_layer.append(track)
-        markers_layer.append(marker_layer)
+        tracks_layer_group.add_layer(track)
+        markers_layer_group.add_layer(marker_layer)
         
     # Define average forecast polyline for the map
     track_avg = ipyleaflet.Polyline(
@@ -362,6 +363,7 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
 
     # Add observed track to the map
     marker_o = [ipyleaflet.CircleMarker(location=loc, radius=1, color="black") for loc in locations_o]
+    # marker_o = [ipyleaflet.CircleMarker(location=loc, radius=1, color="black", popup=widgets.HTML(value=f'Latitude: {loc[0]} \nLongitude: {loc[1]}')) for loc in locations_o]
     markers_layer_o = ipyleaflet.LayerGroup(layers=marker_o)
     layer_group_o = ipyleaflet.LayerGroup(layers=[track_o, markers_layer_o], name='Observed Track')
 
@@ -369,13 +371,12 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
     
     # Add average forecast track to the map
     marker_avg = [ipyleaflet.CircleMarker(location=loc, radius=1, color="black") for loc in locations_avgf]
+    # marker_avg = [ipyleaflet.CircleMarker(location=loc, radius=1, color="black", popup=widgets.HTML(value=f'Latitude: {loc[0]} \nLongitude: {loc[1]}')) for loc in locations_avgf]
     markers_layer_avg = ipyleaflet.LayerGroup(layers=marker_avg)
     layer_group_avg = ipyleaflet.LayerGroup(layers=[track_avg, markers_layer_avg], name='Average Forecast Track')
     tc_track_map.add_layer(layer_group_avg)
 
     # Add forecasted ensemble tracks to the map
-    tracks_layer_group = ipyleaflet.LayerGroup(layers=tracks_layer)
-    markers_layer_group = ipyleaflet.LayerGroup(layers=markers_layer)
     layer_group_f = ipyleaflet.LayerGroup(layers=[tracks_layer_group, markers_layer_group], name='Forecasted Ensemble Tracks')
 
     tc_track_map.add_layer(layer_group_f)
@@ -384,5 +385,4 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
     layers_control = ipyleaflet.LayersControl()
     tc_track_map.add_control(layers_control);
 
-    # Print map
-    display(tc_track_map)
+    return tc_track_map
