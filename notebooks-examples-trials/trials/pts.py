@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+# -*- coding: utf-8 -*-
+ # isort: off
+>>>>>>> c29e520f607bc1a1ad3a06fc839bbe87faddd8fd
 #!/usr/bin/env python3
 #
 # (C) Copyright 1996- ECMWF.
@@ -9,10 +14,13 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+<<<<<<< HEAD
  
 
  
 
+=======
+>>>>>>> c29e520f607bc1a1ad3a06fc839bbe87faddd8fd
 import argparse
 import pickle
 import re
