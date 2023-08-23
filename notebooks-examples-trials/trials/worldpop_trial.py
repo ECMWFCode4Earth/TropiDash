@@ -15,3 +15,7 @@ requests.get("https://www.worldpop.org/rest/data/pop_density/pd_ic_1km").json()
 requests.get("https://www.worldpop.org/rest/data/pop").json()
 
 requests.get("https://www.worldpop.org/rest/data/pop/wpgp1km/data").json()
+
+
+#to try
+requests.get("https://www.worldpop.org/rest/data/pop/wpgp1km?id=24777").json()
