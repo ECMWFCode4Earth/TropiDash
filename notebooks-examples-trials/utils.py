@@ -33,6 +33,33 @@ import haversine as hs
 import warnings
 warnings.filterwarnings("ignore")
 
+# Function to download ensemble forecast of cyclone tracks data
+def download_tracks_forecast(start_date):
+    '''
+        start_date is the value of the starting date forecast widget, dtype: datetime
+    '''
+    client = Client(source="azure")
+    try:
+        client.retrieve(
+            date=int(start_date.strftime("%Y%m%d")),
+            time=0,
+            stream="enfo",
+            type="tf",
+            step=240,
+            target="data/tc_test_track_data.bufr",
+        );
+    except:
+        print('Today\'s forecast not available, downloaded yesterday\'s forecast')
+        start_date = start_date - timedelta(days=1)
+        client.retrieve(
+            date=int(start_date.strftime("%Y%m%d")),
+            time=0,
+            stream="enfo",
+            type="tf",
+            step=240,
+            target="data/tc_test_track_data.bufr",
+        );
+
 # Function to import forecast storms file and load it in a dataframe
 def create_storms_df():
     # Load cyclone dataframe with Mean sea level pressure value
@@ -109,7 +136,7 @@ def mean_forecast_track(df_storm):
     return mean_track_coord
 
 # Function to determine the correspondent cyclones between forecast and observed data
-def storms_pair(df_storms_forecast, df_storms_observed):
+def storms_pairing(df_storms_forecast, df_storms_observed):
     for_storms = df_storms_forecast.stormIdentifier.unique()
     obs_storms = df_storms_observed.NAME.squeeze().unique().tolist()
 
@@ -127,7 +154,8 @@ def storms_pair(df_storms_forecast, df_storms_observed):
             if hs_dist < max_dist:
                 pair = f"{f_storm}-{o_storm}"
                 max_dist = hs_dist
-        storms_pair.append(pair)
+        if 'pair' in locals():
+            storms_pair.append(pair)
     
     return storms_pair
 
@@ -299,11 +327,11 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
 
     # Define forecasted tracks polyline element for the map
     colours = ["red", "blue", "green", "yellow", "purple", "orange", "cyan", "brown"]
-    tracks_layer = []
-    markers_layer = []
+    tracks_layer_group = ipyleaflet.LayerGroup()
+    markers_layer_group = ipyleaflet.LayerGroup()
     colour = 0
     for locs in locations_f:
-
+        
         track = ipyleaflet.Polyline(
             locations=locs,
             color= colours[colour],
@@ -313,6 +341,7 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
         )
 
         markers = [ipyleaflet.CircleMarker(location=loc, radius=1, color=colours[colour]) for loc in locs]
+        # markers = [ipyleaflet.CircleMarker(location=loc, radius=1, color=colours[colour], popup=widgets.HTML(value=f'Latitude: {loc[0]} \nLongitude: {loc[1]}')) for loc in locs]
 
         colour += 1
         if colour == len(colours):
@@ -320,8 +349,8 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
 
         marker_layer = ipyleaflet.LayerGroup(layers=markers)
 
-        tracks_layer.append(track)
-        markers_layer.append(marker_layer)
+        tracks_layer_group.add_layer(track)
+        markers_layer_group.add_layer(marker_layer)
         
     # Define average forecast polyline for the map
     track_avg = ipyleaflet.Polyline(
@@ -334,6 +363,7 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
 
     # Add observed track to the map
     marker_o = [ipyleaflet.CircleMarker(location=loc, radius=1, color="black") for loc in locations_o]
+    # marker_o = [ipyleaflet.CircleMarker(location=loc, radius=1, color="black", popup=widgets.HTML(value=f'Latitude: {loc[0]} \nLongitude: {loc[1]}')) for loc in locations_o]
     markers_layer_o = ipyleaflet.LayerGroup(layers=marker_o)
     layer_group_o = ipyleaflet.LayerGroup(layers=[track_o, markers_layer_o], name='Observed Track')
 
@@ -341,13 +371,12 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
     
     # Add average forecast track to the map
     marker_avg = [ipyleaflet.CircleMarker(location=loc, radius=1, color="black") for loc in locations_avgf]
+    # marker_avg = [ipyleaflet.CircleMarker(location=loc, radius=1, color="black", popup=widgets.HTML(value=f'Latitude: {loc[0]} \nLongitude: {loc[1]}')) for loc in locations_avgf]
     markers_layer_avg = ipyleaflet.LayerGroup(layers=marker_avg)
     layer_group_avg = ipyleaflet.LayerGroup(layers=[track_avg, markers_layer_avg], name='Average Forecast Track')
     tc_track_map.add_layer(layer_group_avg)
 
     # Add forecasted ensemble tracks to the map
-    tracks_layer_group = ipyleaflet.LayerGroup(layers=tracks_layer)
-    markers_layer_group = ipyleaflet.LayerGroup(layers=markers_layer)
     layer_group_f = ipyleaflet.LayerGroup(layers=[tracks_layer_group, markers_layer_group], name='Forecasted Ensemble Tracks')
 
     tc_track_map.add_layer(layer_group_f)
@@ -356,5 +385,4 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
     layers_control = ipyleaflet.LayersControl()
     tc_track_map.add_control(layers_control);
 
-    # Print map
-    display(tc_track_map)
+    return tc_track_map
