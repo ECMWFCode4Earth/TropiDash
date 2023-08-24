@@ -10,14 +10,18 @@ import math
 
 from eccodes import *
 from ecmwf.opendata import Client
-from math import isnan
+from datetime import datetime, timedelta
 
-from ipywidgets import interact
 import os
 import birdy
 import geopandas as gpd
 import pandas as pd
-from datetime import datetime, timedelta
+import numpy as np
+import xarray as xr
+import haversine as hs
+import requests
+
+from ipywidgets import interact
 import ipyleaflet
 import ipywidgets as widgets
 
@@ -25,18 +29,11 @@ from Magics import macro as magics
 from IPython.display import display
 from Magics.macro import *
 
-import numpy as np
-import xarray as xr
-
-import haversine as hs
-
-import warnings
-warnings.filterwarnings("ignore")
-
 # Function to download ensemble forecast of cyclone tracks data
 def download_tracks_forecast(start_date):
     '''
         start_date is the value of the starting date forecast widget, dtype: datetime
+        the function returns the actual starting date of the forecast
     '''
     client = Client(source="azure")
     try:
@@ -48,8 +45,8 @@ def download_tracks_forecast(start_date):
             step=240,
             target="data/tc_test_track_data.bufr",
         );
+    # Usually early in the morning the forecast of the current day is not available
     except:
-        print('Today\'s forecast not available, downloaded yesterday\'s forecast')
         start_date = start_date - timedelta(days=1)
         client.retrieve(
             date=int(start_date.strftime("%Y%m%d")),
@@ -59,12 +56,13 @@ def download_tracks_forecast(start_date):
             step=240,
             target="data/tc_test_track_data.bufr",
         );
+        print(f'Today\'s forecast not available, downloaded yesterday\'s forecast: {start_date.strftime("%d %b %Y")}')
 
 # Function to import forecast storms file and load it in a dataframe
 def create_storms_df():
     # Load cyclone dataframe with Mean sea level pressure value
     df_storms = pdbufr.read_bufr('data/tc_test_track_data.bufr',
-        columns=("stormIdentifier", "ensembleMemberNumber", "latitude", "longitude",
+        columns=("stormIdentifier", "ensembleMemberNumber", "year", "month", "day", "hour", "latitude", "longitude",
                  "pressureReducedToMeanSeaLevel"))
     # Load cyclone dataframe with Wind speed at 10m value
     df1 = pdbufr.read_bufr('data/tc_test_track_data.bufr',
@@ -271,17 +269,25 @@ def plot_cyclone_tracks_magics(cyclone, lat_boundaries, lon_boundaries):
 def forecast_tracks_locations(df_storm_forecast):
     members = df_storm_forecast.ensembleMemberNumber.unique()
     locations = []
+    timesteps = []
     for member in members:
         df_track = df_storm_forecast[df_storm_forecast.ensembleMemberNumber == member]
+        # create timestep column in dataframe
+        start = datetime(df_track.iloc[0]['year'], df_track.iloc[0]['month'], df_track.iloc[0]['day'], df_track.iloc[0]['hour'])
+        df_track['date'] = start + timedelta(hours=6) * (df_track.index+1)
         df_track.dropna(subset = ['latitude', 'longitude'], inplace=True)
         latitude = df_track.latitude.tolist()
         longitude = df_track.longitude.tolist()
+        dates = df_track.date.tolist()
         locs = []
+        tmtstps = []
         for i in range(len(latitude)):
             loc = (latitude[i], longitude[i])
             locs.append(loc)
+            tmtstps.append(dates[i].strftime("%d-%m-%Y %H:%M"))
         locations.append(locs)
-    return locations
+        timesteps.append(tmtstps)
+    return locations, timesteps
 
 # Function to create the list of (lat, lon) points for the observed track
 def observed_track_locations(df_storm_observed):
@@ -305,7 +311,7 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
     initial_lat_lon = (df_f.latitude.iloc[0], df_f.longitude.iloc[0])
     
     # create lists of locations
-    locations_f = forecast_tracks_locations(df_f)
+    locations_f, timesteps_f = forecast_tracks_locations(df_f)
     locations_o = observed_track_locations(df_o)
     locations_avgf = mean_forecast_track(df_f)
     
@@ -330,18 +336,31 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
     tracks_layer_group = ipyleaflet.LayerGroup()
     markers_layer_group = ipyleaflet.LayerGroup()
     colour = 0
+    i = 0
     for locs in locations_f:
+        
+        tmtstps = timesteps_f[i]
         
         track = ipyleaflet.Polyline(
             locations=locs,
-            color= colours[colour],
+            color=colours[colour],
             fill=False,
             weight=2,
             # name='Track %.02d' % i,
         )
+        
+        markers = []
+        for j in range(len(locs)):
+            marker = ipyleaflet.CircleMarker(
+                location=locs[j],
+                radius=1,
+                color=colours[colour],
+                popup=widgets.HTML(value=f'<b> {tmtstps[j]} </b>')
+            )
+            markers.append(marker)
 
-        markers = [ipyleaflet.CircleMarker(location=loc, radius=1, color=colours[colour]) for loc in locs]
-        # markers = [ipyleaflet.CircleMarker(location=loc, radius=1, color=colours[colour], popup=widgets.HTML(value=f'Latitude: {loc[0]} \nLongitude: {loc[1]}')) for loc in locs]
+        # markers = [ipyleaflet.CircleMarker(location=loc, radius=1, color=colours[colour]) for loc in locs]
+        # markers = [ipyleaflet.CircleMarker(location=loc, radius=1, color=colours[colour], popup=widgets.HTML(value=f'<b> </b>')) for loc in locs]
 
         colour += 1
         if colour == len(colours):
@@ -352,10 +371,12 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
         tracks_layer_group.add_layer(track)
         markers_layer_group.add_layer(marker_layer)
         
+        i += 1
+        
     # Define average forecast polyline for the map
     track_avg = ipyleaflet.Polyline(
             locations=locations_avgf,
-            color= "black",
+            color="black",
             fill=False,
             weight=3,
             # name='Average Forecast Track',
