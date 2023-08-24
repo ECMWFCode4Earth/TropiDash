@@ -1,5 +1,7 @@
 birdy
+cfgrib
 datetime
+ecmwflibs
 ecmwf-opendata
 IPython
 ipyleaflet
