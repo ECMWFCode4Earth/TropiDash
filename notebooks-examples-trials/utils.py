@@ -118,20 +118,27 @@ def mean_forecast_track(df_storm):
     df_lon_tracks = pd.DataFrame()
     for member in members:
         df_track = df_storm[df_storm.ensembleMemberNumber == member]
-        df_track.reset_index(inplace=True)
+        df_track.reset_index(drop=True, inplace=True)
         df_lat_tracks[f'latitude{member}'] = df_track.latitude
         df_lon_tracks[f'longitude{member}'] = df_track.longitude
+    # Add date information for the average track
+    df_track.reset_index(drop=True, inplace=True)
+    start = datetime(df_track.iloc[0]['year'], df_track.iloc[0]['month'], df_track.iloc[0]['day'], df_track.iloc[0]['hour'])
+    dates = start + timedelta(hours=6) * (df_track.index+1)
     
     # Cycle through the rows of df_lat_track and df_lon_tracks to compute the average track lat,lon
     mean_track_coord = []
+    timesteps = []
     for t in range(len(df_lat_tracks)):
         lat = df_lat_tracks.iloc[t].dropna().to_numpy()
         lon = df_lon_tracks.iloc[t].dropna().to_numpy()
+        date = dates[t].strftime("%d-%m-%Y %H:%M")
         if len(lat) > 0:
             mean_lat_lon = meanposit(len(lat), lat, lon)
             mean_track_coord.append(mean_lat_lon)
+            timesteps.append(date)
         
-    return mean_track_coord
+    return mean_track_coord, timesteps
 
 # Function to determine the correspondent cyclones between forecast and observed data
 def storms_pairing(df_storms_forecast, df_storms_observed):
@@ -156,6 +163,176 @@ def storms_pairing(df_storms_forecast, df_storms_observed):
             storms_pair.append(pair)
     
     return storms_pair
+    
+## FUNCTIONS TO PLOT CYCLONE DATA IN IPYLEAFLET ## 
+
+# Function to create the list of (lat,lon) points for the forecast ensemble tracks
+def forecast_tracks_locations(df_storm_forecast):
+    members = df_storm_forecast.ensembleMemberNumber.unique()
+    locations = []
+    timesteps = []
+    for member in members:
+        df_track = df_storm_forecast[df_storm_forecast.ensembleMemberNumber == member]
+        df_track.reset_index(drop=True, inplace=True)
+        # create timestep column in dataframe
+        start = datetime(df_track.iloc[0]['year'], df_track.iloc[0]['month'], df_track.iloc[0]['day'], df_track.iloc[0]['hour'])
+        df_track['date'] = start + timedelta(hours=6) * (df_track.index+1)
+        df_track.dropna(subset = ['latitude', 'longitude'], inplace=True)
+        latitude = df_track.latitude.tolist()
+        longitude = df_track.longitude.tolist()
+        dates = df_track.date.tolist()
+        locs = []
+        tmtstps = []
+        for i in range(len(latitude)):
+            loc = (latitude[i], longitude[i])
+            locs.append(loc)
+            tmtstps.append(dates[i].strftime("%d-%m-%Y %H:%M"))
+        locations.append(locs)
+        timesteps.append(tmtstps)
+    return locations, timesteps
+
+# Function to create the list of (lat, lon) points for the observed track
+def observed_track_locations(df_storm_observed):
+    latitude = df_storm_observed.LAT.squeeze().tolist()
+    longitude = df_storm_observed.LON.squeeze().tolist()
+    dates = df_storm_observed.ISO_TIME.squeeze().tolist()
+    timesteps = []
+    locations = []
+    for i in range(len(latitude)):
+        loc = (latitude[i], longitude[i])
+        date = dates[i][:-3]
+        locations.append(loc)
+        timesteps.append(date)
+    return locations, timesteps
+
+# Function to plot the interactive map with ipyleaflet given a cyclone
+def plot_cyclone_tracks_ipyleaflet(cyclone):
+    
+    # storm data preparation for plotting
+    df_storms_forecast = create_storms_df()
+    df_storms_observed = pd.read_csv('data/ibtracs.ACTIVE.list.v04r00.csv', header=[0,1])
+    code, name = cyclone.split('-')
+    df_f = df_storms_forecast[df_storms_forecast.stormIdentifier == code]
+    df_f.reset_index(drop=True, inplace=True)
+    df_o = df_storms_observed[df_storms_observed.NAME.squeeze() == name]
+    df_o.reset_index(drop=True, inplace=True)
+    initial_lat_lon = (df_f.latitude.iloc[0], df_f.longitude.iloc[0])
+    
+    # create lists of locations
+    locations_f, timesteps_f = forecast_tracks_locations(df_f)
+    locations_o, timesteps_o = observed_track_locations(df_o)
+    locations_avg, timesteps_avg = mean_forecast_track(df_f)
+    
+    # Create the basemap for plotting
+    tc_track_map = ipyleaflet.Map(
+        center=initial_lat_lon,
+        basemap=ipyleaflet.basemaps.OpenStreetMap.France,
+        zoom = 3.0,
+        # scroll_wheel_zoom=True,
+    )
+
+    # Define forecasted tracks polyline element for the map
+    colours = ["red", "blue", "green", "yellow", "purple", "orange", "cyan", "brown"]
+    tracks_layer_group = ipyleaflet.LayerGroup()
+    markers_layer_group = ipyleaflet.LayerGroup()
+    colour = 0
+    i = 0
+    # Cycle on the ensembles of the forecast track
+    for locs in locations_f:
+        
+        tmtstps = timesteps_f[i]
+        
+        # Define the ensemble track polyline for the map
+        track = ipyleaflet.Polyline(
+            locations=locs,
+            color=colours[colour],
+            fill=False,
+            weight=2,
+            # name='Track %.02d' % i,
+        )
+        # Define the markers element for each position of the cyclone ensemble forecast
+        markers = []
+        for j in range(len(locs)):
+            marker = ipyleaflet.CircleMarker(
+                location=locs[j],
+                radius=1,
+                color=colours[colour],
+                popup=widgets.HTML(value=f'<b> {tmtstps[j]} </b>')
+            )
+            markers.append(marker)
+
+        colour += 1
+        if colour == len(colours):
+            colour = 0
+
+        marker_layer = ipyleaflet.LayerGroup(layers=markers)
+
+        tracks_layer_group.add_layer(track)
+        markers_layer_group.add_layer(marker_layer)
+        
+        i += 1
+        
+    # Define average forecast polyline for the map
+    track_avg = ipyleaflet.Polyline(
+            locations=locations_avg,
+            color="black",
+            fill=False,
+            weight=3,
+            # name='Average Forecast Track',
+        )
+    
+    # Define the markers element for each position of the average track
+    marker_avg = []
+    for avg in range(len(locations_avg)):
+        marker = ipyleaflet.CircleMarker(
+            location = locations_avg[avg],
+            radius=1,
+            color="black",
+            popup=widgets.HTML(value=f'<b> {timesteps_avg[avg]} </b>')
+        )
+        marker_avg.append(marker)
+    
+    # Define observed tracks polyline element for the map
+    track_o = ipyleaflet.Polyline(
+            locations=locations_o,
+            color= "black",
+            fill=False,
+            weight=2,
+        )
+
+    # Define the markers element for each position of the observed track
+    marker_o = []
+    for o in range(len(locations_o)):
+        marker = ipyleaflet.CircleMarker(
+            location = locations_o[o],
+            radius=1,
+            color="black",
+            popup=widgets.HTML(value=f'<b> {timesteps_o[o]} </b>')
+        )
+        marker_o.append(marker)
+    
+    # Add observed track to the map
+    markers_layer_o = ipyleaflet.LayerGroup(layers=marker_o)
+    layer_group_o = ipyleaflet.LayerGroup(layers=[track_o, markers_layer_o], name='Observed Track')
+
+    tc_track_map.add_layer(layer_group_o)
+
+    # Add average forecast track to the map
+    markers_layer_avg = ipyleaflet.LayerGroup(layers=marker_avg)
+    layer_group_avg = ipyleaflet.LayerGroup(layers=[track_avg, markers_layer_avg], name='Average Forecast Track')
+    
+    tc_track_map.add_layer(layer_group_avg)
+
+    # Add forecasted ensemble tracks to the map
+    layer_group_f = ipyleaflet.LayerGroup(layers=[tracks_layer_group, markers_layer_group], name='Forecasted Ensemble Tracks')
+
+    tc_track_map.add_layer(layer_group_f)
+
+    # Add layers widget to the map
+    layers_control = ipyleaflet.LayersControl()
+    tc_track_map.add_control(layers_control);
+
+    return tc_track_map
 
 # Function for interactive plotting of observed and forecasted tracks with magics
 def plot_cyclone_tracks_magics(cyclone, lat_boundaries, lon_boundaries):
@@ -262,148 +439,3 @@ def plot_cyclone_tracks_magics(cyclone, lat_boundaries, lon_boundaries):
     toplot.append(title)
     
     display(plot(toplot))
-    
-## FUNCTIONS TO PLOT CYCLONE DATA IN IPYLEAFLET ## 
-
-# Function to create the list of (lat,lon) points for the forecast ensemble tracks
-def forecast_tracks_locations(df_storm_forecast):
-    members = df_storm_forecast.ensembleMemberNumber.unique()
-    locations = []
-    timesteps = []
-    for member in members:
-        df_track = df_storm_forecast[df_storm_forecast.ensembleMemberNumber == member]
-        # create timestep column in dataframe
-        start = datetime(df_track.iloc[0]['year'], df_track.iloc[0]['month'], df_track.iloc[0]['day'], df_track.iloc[0]['hour'])
-        df_track['date'] = start + timedelta(hours=6) * (df_track.index+1)
-        df_track.dropna(subset = ['latitude', 'longitude'], inplace=True)
-        latitude = df_track.latitude.tolist()
-        longitude = df_track.longitude.tolist()
-        dates = df_track.date.tolist()
-        locs = []
-        tmtstps = []
-        for i in range(len(latitude)):
-            loc = (latitude[i], longitude[i])
-            locs.append(loc)
-            tmtstps.append(dates[i].strftime("%d-%m-%Y %H:%M"))
-        locations.append(locs)
-        timesteps.append(tmtstps)
-    return locations, timesteps
-
-# Function to create the list of (lat, lon) points for the observed track
-def observed_track_locations(df_storm_observed):
-    latitude = df_storm_observed.LAT.squeeze().tolist()
-    longitude = df_storm_observed.LON.squeeze().tolist()
-    locations = []
-    for i in range(len(latitude)):
-        loc = (latitude[i], longitude[i])
-        locations.append(loc)
-    return locations
-
-# Function to plot the interactive map with ipyleaflet given a cyclone
-def plot_cyclone_tracks_ipyleaflet(cyclone):
-    
-    # storm data preparation for plotting
-    df_storms_forecast = create_storms_df()
-    df_storms_observed = pd.read_csv('data/ibtracs.ACTIVE.list.v04r00.csv', header=[0,1])
-    code, name = cyclone.split('-')
-    df_f = df_storms_forecast[df_storms_forecast.stormIdentifier == code]
-    df_o = df_storms_observed[df_storms_observed.NAME.squeeze() == name]
-    initial_lat_lon = (df_f.latitude.iloc[0], df_f.longitude.iloc[0])
-    
-    # create lists of locations
-    locations_f, timesteps_f = forecast_tracks_locations(df_f)
-    locations_o = observed_track_locations(df_o)
-    locations_avgf = mean_forecast_track(df_f)
-    
-    # Create the basemap for plotting
-    tc_track_map = ipyleaflet.Map(
-        center=initial_lat_lon,
-        basemap=ipyleaflet.basemaps.OpenStreetMap.France,
-        zoom = 3.0,
-        # scroll_wheel_zoom=True,
-    )
-
-    # Define observed tracks polyline element for the map
-    track_o = ipyleaflet.Polyline(
-            locations=locations_o,
-            color= "black",
-            fill=False,
-            weight=2,
-        )
-
-    # Define forecasted tracks polyline element for the map
-    colours = ["red", "blue", "green", "yellow", "purple", "orange", "cyan", "brown"]
-    tracks_layer_group = ipyleaflet.LayerGroup()
-    markers_layer_group = ipyleaflet.LayerGroup()
-    colour = 0
-    i = 0
-    for locs in locations_f:
-        
-        tmtstps = timesteps_f[i]
-        
-        track = ipyleaflet.Polyline(
-            locations=locs,
-            color=colours[colour],
-            fill=False,
-            weight=2,
-            # name='Track %.02d' % i,
-        )
-        
-        markers = []
-        for j in range(len(locs)):
-            marker = ipyleaflet.CircleMarker(
-                location=locs[j],
-                radius=1,
-                color=colours[colour],
-                popup=widgets.HTML(value=f'<b> {tmtstps[j]} </b>')
-            )
-            markers.append(marker)
-
-        # markers = [ipyleaflet.CircleMarker(location=loc, radius=1, color=colours[colour]) for loc in locs]
-        # markers = [ipyleaflet.CircleMarker(location=loc, radius=1, color=colours[colour], popup=widgets.HTML(value=f'<b> </b>')) for loc in locs]
-
-        colour += 1
-        if colour == len(colours):
-            colour = 0
-
-        marker_layer = ipyleaflet.LayerGroup(layers=markers)
-
-        tracks_layer_group.add_layer(track)
-        markers_layer_group.add_layer(marker_layer)
-        
-        i += 1
-        
-    # Define average forecast polyline for the map
-    track_avg = ipyleaflet.Polyline(
-            locations=locations_avgf,
-            color="black",
-            fill=False,
-            weight=3,
-            # name='Average Forecast Track',
-        )
-
-    # Add observed track to the map
-    marker_o = [ipyleaflet.CircleMarker(location=loc, radius=1, color="black") for loc in locations_o]
-    # marker_o = [ipyleaflet.CircleMarker(location=loc, radius=1, color="black", popup=widgets.HTML(value=f'Latitude: {loc[0]} \nLongitude: {loc[1]}')) for loc in locations_o]
-    markers_layer_o = ipyleaflet.LayerGroup(layers=marker_o)
-    layer_group_o = ipyleaflet.LayerGroup(layers=[track_o, markers_layer_o], name='Observed Track')
-
-    tc_track_map.add_layer(layer_group_o)
-    
-    # Add average forecast track to the map
-    marker_avg = [ipyleaflet.CircleMarker(location=loc, radius=1, color="black") for loc in locations_avgf]
-    # marker_avg = [ipyleaflet.CircleMarker(location=loc, radius=1, color="black", popup=widgets.HTML(value=f'Latitude: {loc[0]} \nLongitude: {loc[1]}')) for loc in locations_avgf]
-    markers_layer_avg = ipyleaflet.LayerGroup(layers=marker_avg)
-    layer_group_avg = ipyleaflet.LayerGroup(layers=[track_avg, markers_layer_avg], name='Average Forecast Track')
-    tc_track_map.add_layer(layer_group_avg)
-
-    # Add forecasted ensemble tracks to the map
-    layer_group_f = ipyleaflet.LayerGroup(layers=[tracks_layer_group, markers_layer_group], name='Forecasted Ensemble Tracks')
-
-    tc_track_map.add_layer(layer_group_f)
-
-    # Add layers widget to the map
-    layers_control = ipyleaflet.LayersControl()
-    tc_track_map.add_control(layers_control);
-
-    return tc_track_map
