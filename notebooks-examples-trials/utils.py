@@ -48,6 +48,7 @@ def download_tracks_forecast(start_date):
             step=240,
             target="data/tc_test_track_data.bufr",
         );
+    # Usually early in the morning the forecast of the current day is not available
     except:
         print('Today\'s forecast not available, downloaded yesterday\'s forecast')
         start_date = start_date - timedelta(days=1)
