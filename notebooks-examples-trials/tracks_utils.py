@@ -68,8 +68,13 @@ def create_storms_df():
     df1 = pdbufr.read_bufr('data/tc_test_track_data.bufr',
         columns=("stormIdentifier", "ensembleMemberNumber", "latitude", "longitude",
                  "windSpeedAt10M"))
+    # Load cyclone dataframe with timeperiod column
+    df2 = pdbufr.read_bufr('track_data/tc_test_track_data.bufr',
+        columns=("stormIdentifier", "ensembleMemberNumber", "latitude", "longitude",
+                 "timePeriod"))
     # Add the Wind speed at 10m column to the storms dataframe 
     df_storms["windSpeedAt10M"] = df1.windSpeedAt10M
+    df_storms["timePeriod"] = df2.timePeriod
     # Storms with number higher than 10 are not real storms (according to what Fernando said)
     drop_condition = df_storms.stormIdentifier < '11'
     df_storms = df_storms[drop_condition]
@@ -238,7 +243,7 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
     colour = 0
     i = 0
     # Cycle on the ensembles of the forecast track
-    for locs in locations_f:
+    for locs in locations_f[:10]:
         
         tmtstps = timesteps_f[i]
         
