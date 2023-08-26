@@ -1,0 +1,13 @@
+<PAMDataset>
+  <PAMRasterBand band="1">
+    <Description>Mean sea level pressure</Description>
+    <Metadata>
+      <MDI key="STATISTICS_APPROXIMATE">YES</MDI>
+      <MDI key="STATISTICS_MAXIMUM">103949.3125</MDI>
+      <MDI key="STATISTICS_MEAN">101045.65042115</MDI>
+      <MDI key="STATISTICS_MINIMUM">96211.3125</MDI>
+      <MDI key="STATISTICS_STDDEV">1077.1174590435</MDI>
+      <MDI key="STATISTICS_VALID_PERCENT">100</MDI>
+    </Metadata>
+  </PAMRasterBand>
+</PAMDataset>

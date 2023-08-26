@@ -1,20 +1,2 @@
-birdy
-cfgrib
-datetime
-ecmwflibs
-ecmwf-opendata
-IPython
-ipyleaflet
-ipywidgets
-localtileserver @ git+https://github.com/paolchol/localtileserver.git@fix_palettes
-Magics
-matplotlib
 numpy
-pandas
-pdbufr
-Pillow
-rasterio
-requests
-rioxarray
-voila
-xarray
+pytest[tests]
