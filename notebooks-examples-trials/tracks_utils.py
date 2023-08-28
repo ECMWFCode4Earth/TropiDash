@@ -146,7 +146,8 @@ def mean_forecast_track(df_storm):
         lat = df_lat_tracks.iloc[t].dropna().to_numpy()
         lon = df_lon_tracks.iloc[t].dropna().to_numpy()
         date = dates[t].strftime("%d-%m-%Y %H:%M")
-        radius = df_radius_tracks.iloc[t].mean()
+        rad = df_radius_tracks.iloc[t].dropna()
+        radius = rad[rad > 0].mean()
         if len(lat) > 0:
             mean_lat_lon = meanposit(len(lat), lat, lon)
             mean_track_coord.append(mean_lat_lon)
@@ -256,7 +257,7 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
     colour = 0
     i = 0
     # Cycle on the ensembles of the forecast track
-    for locs in locations_f[:10]:
+    for locs in locations_f:
         
         tmtstps = timesteps_f[i]
         
@@ -313,8 +314,8 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
             circle = ipyleaflet.Circle(
                 location=locations_avg[avg],
                 radius=int(radii_avg[avg]),
-                color="purple",
-                fill_color="purple",
+                color="rgba(0, 0, 0, 0)",
+                fill_color="red",
                 popup=widgets.HTML(value=f'<b> {radii_avg[avg]*10**(-3):.2f} km </b>')
             )
             circle_avg.append(circle)
@@ -347,7 +348,7 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
 
     # Add average forecast track to the map
     markers_layer_avg = ipyleaflet.LayerGroup(layers=marker_avg)
-    circles_layer_avg = ipyleaflet.LayerGroup(layers=circle_avg, name='Circle of wind speeds > 35 kts')
+    circles_layer_avg = ipyleaflet.LayerGroup(layers=circle_avg, name='Average circle of wind speeds > 35 kts')
     layer_group_avg = ipyleaflet.LayerGroup(layers=[track_avg, markers_layer_avg], name='Average Forecast Track')
     
     tc_track_map.add_layer(layer_group_avg)
