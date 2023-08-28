@@ -62,19 +62,24 @@ def download_tracks_forecast(start_date):
 def create_storms_df():
     # Load cyclone dataframe with Mean sea level pressure value
     df_storms = pdbufr.read_bufr('data/tc_test_track_data.bufr',
-        columns=("stormIdentifier", "ensembleMemberNumber", "year", "month", "day", "hour", "latitude", "longitude",
+        columns=("stormIdentifier", "longStormName", "ensembleMemberNumber", "year", "month", "day", "hour", "latitude", "longitude",
                  "pressureReducedToMeanSeaLevel"))
     # Load cyclone dataframe with Wind speed at 10m value
     df1 = pdbufr.read_bufr('data/tc_test_track_data.bufr',
-        columns=("stormIdentifier", "ensembleMemberNumber", "latitude", "longitude",
+        columns=("stormIdentifier", "longStormName", "ensembleMemberNumber", "latitude", "longitude",
                  "windSpeedAt10M"))
     # Load cyclone dataframe with timeperiod column
-    df2 = pdbufr.read_bufr('track_data/tc_test_track_data.bufr',
-        columns=("stormIdentifier", "ensembleMemberNumber", "latitude", "longitude",
+    df2 = pdbufr.read_bufr('data/tc_test_track_data.bufr',
+        columns=("stormIdentifier", "longStormName", "ensembleMemberNumber", "latitude", "longitude",
                  "timePeriod"))
+    # Load cyclone dataframe with radius of winds excedding the 35 kts threshold
+    df3 = pdbufr.read_bufr('data/tc_test_track_data.bufr',
+        columns=("stormIdentifier", "longStormName", "ensembleMemberNumber", "latitude", "longitude",
+                 "effectiveRadiusWithRespectToWindSpeedsAboveThreshold"))
     # Add the Wind speed at 10m column to the storms dataframe 
     df_storms["windSpeedAt10M"] = df1.windSpeedAt10M
     df_storms["timePeriod"] = df2.timePeriod
+    df_storms["effectiveRadiusWithRespectToWindSpeedsAboveThreshold"] = df3.effectiveRadiusWithRespectToWindSpeedsAboveThreshold
     # Storms with number higher than 10 are not real storms (according to what Fernando said)
     drop_condition = df_storms.stormIdentifier < '11'
     df_storms = df_storms[drop_condition]
@@ -114,18 +119,20 @@ def meanposit(knpf, rlatpf, rlonpf):
     
     return rlatmean, rlonmean
 
-# Function that returns the list of coordinates for the mean forecast track
+# Function that returns the list of coordinates and the average radius of wind speed wxcedding 35 kts for the mean forecast track
 def mean_forecast_track(df_storm):
     
     # Create 2 dataframe with latitude and logitude coordinates for each ensemble as columns
     members = df_storm.ensembleMemberNumber.unique()
     df_lat_tracks = pd.DataFrame()
     df_lon_tracks = pd.DataFrame()
+    df_radius_tracks = pd.DataFrame()
     for member in members:
         df_track = df_storm[df_storm.ensembleMemberNumber == member]
         df_track.reset_index(drop=True, inplace=True)
         df_lat_tracks[f'latitude{member}'] = df_track.latitude
         df_lon_tracks[f'longitude{member}'] = df_track.longitude
+        df_radius_tracks[f'radius{member}'] = df_track.effectiveRadiusWithRespectToWindSpeedsAboveThreshold
     # Add date information for the average track
     df_track.reset_index(drop=True, inplace=True)
     start = datetime(df_track.iloc[0]['year'], df_track.iloc[0]['month'], df_track.iloc[0]['day'], df_track.iloc[0]['hour'])
@@ -134,16 +141,19 @@ def mean_forecast_track(df_storm):
     # Cycle through the rows of df_lat_track and df_lon_tracks to compute the average track lat,lon
     mean_track_coord = []
     timesteps = []
+    radii = []
     for t in range(len(df_lat_tracks)):
         lat = df_lat_tracks.iloc[t].dropna().to_numpy()
         lon = df_lon_tracks.iloc[t].dropna().to_numpy()
         date = dates[t].strftime("%d-%m-%Y %H:%M")
+        radius = df_radius_tracks.iloc[t].mean()
         if len(lat) > 0:
             mean_lat_lon = meanposit(len(lat), lat, lon)
             mean_track_coord.append(mean_lat_lon)
             timesteps.append(date)
+            radii.append(radius)
         
-    return mean_track_coord, timesteps
+    return mean_track_coord, radii, timesteps
 
 # Function to determine the correspondent cyclones between forecast and observed data
 def storms_pairing(df_storms_forecast, df_storms_observed):
@@ -171,11 +181,12 @@ def storms_pairing(df_storms_forecast, df_storms_observed):
     
 ## FUNCTIONS TO PLOT CYCLONE DATA IN IPYLEAFLET ## 
 
-# Function to create the list of (lat,lon) points for the forecast ensemble tracks
+# Function to create the list of (lat,lon) points, timesteps and radii for the forecast ensemble tracks
 def forecast_tracks_locations(df_storm_forecast):
     members = df_storm_forecast.ensembleMemberNumber.unique()
     locations = []
     timesteps = []
+    radii = []
     for member in members:
         df_track = df_storm_forecast[df_storm_forecast.ensembleMemberNumber == member]
         df_track.reset_index(drop=True, inplace=True)
@@ -186,6 +197,7 @@ def forecast_tracks_locations(df_storm_forecast):
         latitude = df_track.latitude.tolist()
         longitude = df_track.longitude.tolist()
         dates = df_track.date.tolist()
+        radius = df_track.effectiveRadiusWithRespectToWindSpeedsAboveThreshold.tolist()
         locs = []
         tmtstps = []
         for i in range(len(latitude)):
@@ -194,7 +206,8 @@ def forecast_tracks_locations(df_storm_forecast):
             tmtstps.append(dates[i].strftime("%d-%m-%Y %H:%M"))
         locations.append(locs)
         timesteps.append(tmtstps)
-    return locations, timesteps
+        radii.append(radius)
+    return locations, radii, timesteps
 
 # Function to create the list of (lat, lon) points for the observed track
 def observed_track_locations(df_storm_observed):
@@ -224,9 +237,9 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
     initial_lat_lon = (df_f.latitude.iloc[0], df_f.longitude.iloc[0])
     
     # create lists of locations
-    locations_f, timesteps_f = forecast_tracks_locations(df_f)
+    locations_f, radii_f, timesteps_f = forecast_tracks_locations(df_f)
     locations_o, timesteps_o = observed_track_locations(df_o)
-    locations_avg, timesteps_avg = mean_forecast_track(df_f)
+    locations_avg, radii_avg, timesteps_avg = mean_forecast_track(df_f)
     
     # Create the basemap for plotting
     tc_track_map = ipyleaflet.Map(
@@ -286,8 +299,9 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
             # name='Average Forecast Track',
         )
     
-    # Define the markers element for each position of the average track
+    # Define the markers element and the circles element for each position of the average track
     marker_avg = []
+    circle_avg = []
     for avg in range(len(locations_avg)):
         marker = ipyleaflet.CircleMarker(
             location = locations_avg[avg],
@@ -295,6 +309,15 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
             color="black",
             popup=widgets.HTML(value=f'<b> {timesteps_avg[avg]} </b>')
         )
+        if radii_avg[avg] > 0:
+            circle = ipyleaflet.Circle(
+                location=locations_avg[avg],
+                radius=int(radii_avg[avg]),
+                color="purple",
+                fill_color="purple",
+                popup=widgets.HTML(value=f'<b> {radii_avg[avg]*10**(-3):.2f} km </b>')
+            )
+            circle_avg.append(circle)
         marker_avg.append(marker)
     
     # Define observed tracks polyline element for the map
@@ -324,9 +347,11 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
 
     # Add average forecast track to the map
     markers_layer_avg = ipyleaflet.LayerGroup(layers=marker_avg)
+    circles_layer_avg = ipyleaflet.LayerGroup(layers=circle_avg, name='Circle of wind speeds > 35 kts')
     layer_group_avg = ipyleaflet.LayerGroup(layers=[track_avg, markers_layer_avg], name='Average Forecast Track')
     
     tc_track_map.add_layer(layer_group_avg)
+    tc_track_map.add_layer(circles_layer_avg)
 
     # Add forecasted ensemble tracks to the map
     layer_group_f = ipyleaflet.LayerGroup(layers=[tracks_layer_group, markers_layer_group], name='Forecasted Ensemble Tracks')
