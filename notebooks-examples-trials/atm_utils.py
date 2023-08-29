@@ -8,15 +8,12 @@ from ipyleaflet import Choropleth, Map, basemap_to_tiles, LayersControl, LegendC
 import ipywidgets as widgets
 from IPython.display import display
 from localtileserver import get_leaflet_tile_layer, TileClient
-# from Magics import macro as magics
-# from Magics.macro import *
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
 import rasterio
-# import requests
 import rioxarray as rxr
 import xarray as xr
 
