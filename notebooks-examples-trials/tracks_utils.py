@@ -225,22 +225,17 @@ def observed_track_locations(df_storm_observed):
     return locations, timesteps
 
 # Function to plot the interactive map with ipyleaflet given a cyclone
-def plot_cyclone_tracks_ipyleaflet(cyclone):
+def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_observed):
     
     # storm data preparation for plotting
-    df_storms_forecast = create_storms_df()
-    df_storms_observed = pd.read_csv('data/ibtracs.ACTIVE.list.v04r00.csv', header=[0,1])
-    code, name = cyclone.split('-')
-    df_f = df_storms_forecast[df_storms_forecast.stormIdentifier == code]
+    df_f = df_storm_forecast[df_storm_forecast.ensembleMemberNumber.isin(ens_members)]
     df_f.reset_index(drop=True, inplace=True)
-    df_o = df_storms_observed[df_storms_observed.NAME.squeeze() == name]
-    df_o.reset_index(drop=True, inplace=True)
-    initial_lat_lon = (df_f.latitude.iloc[0], df_f.longitude.iloc[0])
+    initial_lat_lon = (df_storm_forecast.latitude.iloc[0], df_storm_forecast.longitude.iloc[0])
     
     # create lists of locations
     locations_f, radii_f, timesteps_f = forecast_tracks_locations(df_f)
-    locations_o, timesteps_o = observed_track_locations(df_o)
-    locations_avg, radii_avg, timesteps_avg = mean_forecast_track(df_f)
+    locations_o, timesteps_o = observed_track_locations(df_storm_observed)
+    locations_avg, radii_avg, timesteps_avg = mean_forecast_track(df_storm_forecast)
     
     # Create the basemap for plotting
     tc_track_map = ipyleaflet.Map(
@@ -254,11 +249,13 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
     colours = ["red", "blue", "green", "yellow", "purple", "orange", "cyan", "brown"]
     tracks_layer_group = ipyleaflet.LayerGroup()
     markers_layer_group = ipyleaflet.LayerGroup()
+    circles_layer_group = ipyleaflet.LayerGroup(name='Ensemble circles of wind speeds > 35 kts')
     colour = 0
     i = 0
     # Cycle on the ensembles of the forecast track
     for locs in locations_f:
         
+        radius = radii_f[i]
         tmtstps = timesteps_f[i]
         
         # Define the ensemble track polyline for the map
@@ -271,6 +268,7 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
         )
         # Define the markers element for each position of the cyclone ensemble forecast
         markers = []
+        circles = []
         for j in range(len(locs)):
             marker = ipyleaflet.CircleMarker(
                 location=locs[j],
@@ -279,15 +277,27 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
                 popup=widgets.HTML(value=f'<b> {tmtstps[j]} </b>')
             )
             markers.append(marker)
+            if radius[j] > 0:
+                circle = ipyleaflet.Circle(
+                    location=locs[j],
+                    radius=int(radius[j]),
+                    color="rgba(0, 0, 0, 0)",
+                    fill_color=colours[colour],
+                    fill_opacity=0.1,
+                    weight=0
+                )
+                circles.append(circle)
 
         colour += 1
         if colour == len(colours):
             colour = 0
 
         marker_layer = ipyleaflet.LayerGroup(layers=markers)
+        circle_layer = ipyleaflet.LayerGroup(layers=circles)
 
         tracks_layer_group.add_layer(track)
         markers_layer_group.add_layer(marker_layer)
+        circles_layer_group.add_layer(circle_layer)
         
         i += 1
         
@@ -315,7 +325,8 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
                 location=locations_avg[avg],
                 radius=int(radii_avg[avg]),
                 color="rgba(0, 0, 0, 0)",
-                fill_color="red",
+                fill_color="black",
+                fill_opacity=0.1,
                 popup=widgets.HTML(value=f'<b> {radii_avg[avg]*10**(-3):.2f} km </b>')
             )
             circle_avg.append(circle)
@@ -358,6 +369,9 @@ def plot_cyclone_tracks_ipyleaflet(cyclone):
     layer_group_f = ipyleaflet.LayerGroup(layers=[tracks_layer_group, markers_layer_group], name='Forecasted Ensemble Tracks')
 
     tc_track_map.add_layer(layer_group_f)
+    
+    # Add circle of winds exceeding 35 kts
+    tc_track_map.add_layer(circles_layer_group)
 
     # Add layers widget to the map
     layers_control = ipyleaflet.LayersControl()
