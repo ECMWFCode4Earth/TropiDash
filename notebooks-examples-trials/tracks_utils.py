@@ -27,6 +27,7 @@ from ipywidgets import interact
 from IPython.display import display
 from scipy.optimize import root_scalar
 from scipy.spatial import KDTree
+from localtileserver import get_leaflet_tile_layer, TileClient
 
 def download_tracks_forecast(start_date):
     """
@@ -458,6 +459,12 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
     df_f.reset_index(drop=True, inplace=True)
     initial_lat_lon = (df_storm_forecast.latitude.iloc[0], df_storm_forecast.longitude.iloc[0])
     
+    # compute the strike probability map and open raster file
+    df_storm = df_storm_forecast.copy()
+    strike_map_xr, tif_path = strike_probability_map(df_storm)
+    with rasterio.open(tif_path) as src:
+        client = TileClient(src)
+    
     # create lists of locations
     locations_f, timesteps_f = forecast_tracks_locations(df_f)
     locations_o, timesteps_o = observed_track_locations(df_storm_observed)
@@ -473,8 +480,7 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
 
     # Define forecasted tracks polyline element for the map
     colours = ["red", "blue", "green", "yellow", "purple", "orange", "cyan", "brown"]
-    tracks_layer_group = ipyleaflet.LayerGroup()
-    markers_layer_group = ipyleaflet.LayerGroup()
+    tracks_layer = []
     colour = 0
     i = 0
     # Cycle on the ensembles of the forecast track
@@ -504,10 +510,10 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
         if colour == len(colours):
             colour = 0
 
-        marker_layer = ipyleaflet.LayerGroup(layers=markers)
+        markers_layer = ipyleaflet.LayerGroup(layers=markers)
+        track_layer = ipyleaflet.LayerGroup(layers=[track, markers_layer])
 
-        tracks_layer_group.add_layer(track)
-        markers_layer_group.add_layer(marker_layer)
+        tracks_layer.append(track_layer)
         
         i += 1
         
@@ -549,6 +555,9 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
             popup=widgets.HTML(value=f'<b> {timesteps_o[o]} </b>')
         )
         marker_o.append(marker)
+        
+    # Define raster layer for strike probability map
+    stp_map = get_leaflet_tile_layer(client, name = "Strike Probability Map", opacity = 0.75, palette = "tab20b", )
     
     # Add observed track to the map
     markers_layer_o = ipyleaflet.LayerGroup(layers=marker_o)
@@ -563,9 +572,11 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
     tc_track_map.add_layer(layer_group_avg)
 
     # Add forecasted ensemble tracks to the map
-    layer_group_f = ipyleaflet.LayerGroup(layers=[tracks_layer_group, markers_layer_group], name='Forecasted Ensemble Tracks')
-
-    tc_track_map.add_layer(layer_group_f)
+    tracks_layer_group = ipyleaflet.LayerGroup(layers=tracks_layer, name='Forecasted Ensemble Tracks')
+    tc_track_map.add_layer(tracks_layer_group)
+    
+    # Add strike probability map layer to the map
+    tc_track_map.add_layer(stp_map)
 
     # Add layers widget to the map
     layers_control = ipyleaflet.LayersControl()
