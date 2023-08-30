@@ -319,7 +319,7 @@ def strike_probability_map(df_storm_forecast):
     # K-d tree building
     lat_max = df.lat.max() + 5
     lat_min = df.lat.min() - 5
-    lon_max = df.lon.max() + 5
+    lon_max = df.lon.max() + 7.5
     lon_min = df.lon.min() - 5
     
     lats = np.flip(np.arange(lat_min, lat_max, 0.25))
@@ -428,7 +428,9 @@ def strike_probability_map(df_storm_forecast):
     
     # Format the algorithm result to a xarray.DataArray
     strike_map = val.reshape((Nj, Ni))
-    strike_map_xr = xr.DataArray(strike_map, dims=('latitude', 'longitude'), coords={'latitude': lats, 'longitude': lons})
+    strike_map_no0 = strike_map.copy()
+    strike_map_no0[strike_map_no0 <= 0] = np.nan
+    strike_map_xr = xr.DataArray(strike_map_no0, dims=('latitude', 'longitude'), coords={'latitude': lats, 'longitude': lons})
     
     tif_path = "data/pts_raster.tif"
     strike_map_xr = strike_map_xr.rio.write_crs("epsg:4326")
