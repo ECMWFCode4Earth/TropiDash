@@ -285,6 +285,7 @@ def storm_df_reorganization(df):
     df.rename(columns={"ensembleMemberNumber":"number", "latitude":"lat", "longitude":"lon", "pressureReducedToMeanSeaLevel":"msl", "windSpeedAt10M":"wind"}, inplace=True)
     df.drop(columns=["stormIdentifier"])
     df['msl'] = df['msl'] / 100
+    df.reset_index(drop=True, inplace=True)
     dates = datetime(df.year[0], df.month[0], df.day[0], df.hour[0]) + timedelta(hours=1) * df.timePeriod
     df["date"] = dates.dt.strftime("%Y%m%d")
     df["step"] = dates.dt.strftime("%H").astype("int") * 100
@@ -307,7 +308,7 @@ def strike_probability_map(df_storm_forecast):
         Filename of the raster file containing the strike probability map
     """
     # Reorganization of the dataframe to adjust it to pts algorithm
-    df = storm_df_reorganization(df_storm_forecast)
+    df = storm_df_reorganization(df_storm_forecast.copy())
     df.dropna(subset = ['lat', 'lon'], inplace=True)
     df["id"] = df.number
     
@@ -315,13 +316,13 @@ def strike_probability_map(df_storm_forecast):
     distance = 300.0e3
     overlap = 0.7
     dist_circle = distance_from_overlap(distance, overlap)
-    basetime = datetime.strptime(df.date[0], '%Y%m%d')
+    basetime = datetime.strptime(df.date.iloc[0], '%Y%m%d')
     
     # K-d tree building
-    lat_max = df.lat.max() + 5
-    lat_min = df.lat.min() - 5
-    lon_max = df.lon.max() + 7.5
-    lon_min = df.lon.min() - 5
+    lat_max = df.lat.max() + 10
+    lat_min = df.lat.min() - 10
+    lon_max = df.lon.max() + 10
+    lon_min = df.lon.min() - 10
     
     lats = np.flip(np.arange(lat_min, lat_max, 0.25))
     lons = np.arange(lon_min, lon_max, 0.25)
@@ -429,9 +430,7 @@ def strike_probability_map(df_storm_forecast):
     
     # Format the algorithm result to a xarray.DataArray
     strike_map = val.reshape((Nj, Ni))
-    strike_map_no0 = strike_map.copy()
-    strike_map_no0[strike_map_no0 <= 0] = np.nan
-    strike_map_xr = xr.DataArray(strike_map_no0, dims=('latitude', 'longitude'), coords={'latitude': lats, 'longitude': lons})
+    strike_map_xr = xr.DataArray(strike_map, dims=('latitude', 'longitude'), coords={'latitude': lats, 'longitude': lons})
     
     tif_path = "data/pts_raster.tif"
     strike_map_xr = strike_map_xr.rio.write_crs("epsg:4326")
@@ -556,8 +555,15 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
         )
         marker_o.append(marker)
         
-    # Define raster layer for strike probability map
-    stp_map = get_leaflet_tile_layer(client, name = "Strike Probability Map", opacity = 0.75, palette = "tab20b", )
+    # Define raster layer for strike probability map and its legend widget
+    palette = ["#c4ff70", "#6ae24c", "#2a9134", "#137547", "#054a29", "#2397d1", "#557ff3", "#143cdc", "#3910b4", "#1e0063"]
+    def make_palette_dict(pal):
+        perc = ["0-10%", "11-20%", "21-30%", "31-40%", "41-50%", "51-60%", "61-70%", "71-80%", "81-90%", "91-100%"]
+        dictionary = {perc[0]:pal[0], perc[1]:pal[1], perc[2]:pal[2], perc[3]:pal[3], perc[4]:pal[4], perc[5]:pal[5], perc[6]:pal[6], perc[7]:pal[7], perc[8]:pal[8], perc[9]:pal[9]}
+        return dictionary
+    palette_dict = make_palette_dict(palette)
+    stp_map = get_leaflet_tile_layer(client, name = "Strike Probability Map", opacity = 0.8, palette = palette, nodata=0.0)
+    legend_control = ipyleaflet.LegendControl(palette_dict, name="Strike Probability", position="topright")
     
     # Add observed track to the map
     markers_layer_o = ipyleaflet.LayerGroup(layers=marker_o)
@@ -575,11 +581,15 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
     tracks_layer_group = ipyleaflet.LayerGroup(layers=tracks_layer, name='Forecasted Ensemble Tracks')
     tc_track_map.add_layer(tracks_layer_group)
     
-    # Add strike probability map layer to the map
+    # Add strike probability map layer to the map and leged
     tc_track_map.add_layer(stp_map)
+    tc_track_map.add_control(legend_control)
 
     # Add layers widget to the map
     layers_control = ipyleaflet.LayersControl()
     tc_track_map.add_control(layers_control);
+    
+    # Add posibility to open the map full screen
+    tc_track_map.add_control(ipyleaflet.FullScreenControl())
 
     return tc_track_map
