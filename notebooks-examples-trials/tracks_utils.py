@@ -308,6 +308,7 @@ def strike_probability_map(df_storm_forecast):
         Filename of the raster file containing the strike probability map
     """
     # Reorganization of the dataframe to adjust it to pts algorithm
+    storm_code = df_storm_forecast.stormIdentifier.unique()[0]
     df = storm_df_reorganization(df_storm_forecast.copy())
     df.dropna(subset = ['lat', 'lon'], inplace=True)
     df["id"] = df.number
@@ -432,7 +433,7 @@ def strike_probability_map(df_storm_forecast):
     strike_map = val.reshape((Nj, Ni))
     strike_map_xr = xr.DataArray(strike_map, dims=('latitude', 'longitude'), coords={'latitude': lats, 'longitude': lons})
     
-    tif_path = "data/pts_raster.tif"
+    tif_path = f"data/pts_raster{storm_code}.tif"
     strike_map_xr = strike_map_xr.rio.write_crs("epsg:4326")
     strike_map_xr.rio.to_raster(tif_path)
     
@@ -461,8 +462,7 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
     # compute the strike probability map and open raster file
     df_storm = df_storm_forecast.copy()
     strike_map_xr, tif_path = strike_probability_map(df_storm)
-    with rasterio.open(tif_path) as src:
-        client = TileClient(src)
+    client = TileClient(tif_path)
     
     # create lists of locations
     locations_f, timesteps_f = forecast_tracks_locations(df_f)
