@@ -2,7 +2,7 @@
 # isort: off
 
 import cfgrib
-from datetime import datetime
+from datetime import datetime, timedelta
 from ecmwf.opendata import Client
 from ipyleaflet import Choropleth, Map, basemap_to_tiles, LayersControl, LegendControl
 import ipywidgets as widgets
@@ -19,19 +19,37 @@ import xarray as xr
 
 #%% Download
 
-def dwnl_atmdata_step(variables, stepsdict):
+def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure"):
     """
     Function which downloads 1, 2, 5 and 10 days ahead forecasts from today
+
+    variables: str, list of str
+        List containing the codes of the variables to be downloaded.
+        Codes can be found here: https://github.com/ecmwf/ecmwf-opendata/tree/main#parameters-and-levels
+    stepsdict: dict
+        Dictionary containing the steps codes needed for each variable. The standard step format is under "base".
+    stdate: int or str, optional
+        Integer or string defining the starting date to download the data from. Default is 0, meaning
+        the function will download the forecasts from the current day.
+    source: str, optional
+        Parameter needed for ecmwf.opendata Client class. Can be "azure" or "ecmwf". Default: azure
+
+    Returns:
+    fnames: list of str
+        List containing the paths to the downloaded data
     """
     fnames = []
-    today = datetime.today().strftime('%Y%m%d')
+    if stdate == 0:
+        stdate = datetime.today().strftime('%Y%m%d')
+    else:
+        stdate = stdate.strftime('%Y%m%d')
     for var in variables:
         if var == "10fgg15": steps = stepsdict["10fgg15"]
         else: steps = stepsdict["base"]
         for s in steps:
             if var == "10fgg15":
                 rqt = {
-                    "date": 0,      #date start of the forecast: today
+                    "date": stdate, #date start of the forecast
                     "time": 0,      #time start of the forecast, can be 0 or 12
                     "step": s,      #step of the forecast: 1, 2, 5, 10 days
                     "stream": "enfo",
@@ -40,7 +58,7 @@ def dwnl_atmdata_step(variables, stepsdict):
                 }
             else:
                 rqt = {
-                    "date": 0,      #date start of the forecast: today
+                    "date": stdate, #date start of the forecast
                     "time": 0,      #time start of the forecast, can be 0 or 12
                     "step": s,      #step of the forecast: 1, 2, 5, 10 days
                     "stream": "oper",
@@ -48,26 +66,40 @@ def dwnl_atmdata_step(variables, stepsdict):
                     "levtype": "sfc",
                     "param": var,
                 }
-            filename = f"data/atm/{var}_{rqt['date']}_{today}_time{rqt['time']}_step{rqt['step']}_{rqt['stream']}_{rqt['type']}.grib"
-            if not os.path.exists(filename):
-                client = Client(source = "ecmwf", beta = True)
-                client.retrieve(
-                    request = rqt,
-                    target = filename
-                )
+            client = Client(source = source, beta = True)
+            try:
+                filename = f"data/atm/{var}_{rqt['date']}_time{rqt['time']}_step{rqt['step']}_{rqt['stream']}_{rqt['type']}.grib"
+                if not os.path.exists(filename):
+                    client.retrieve(
+                        request = rqt,
+                        target = filename
+                    )
+            except:
+                # Usually early in the morning the forecast of the current day is not available
+                # > get the forecast of the day before
+                rqt.date = rqt.date - timedelta(days = 1)
+                filename = f"data/atm/{var}_{rqt['date']}_time{rqt['time']}_step{rqt['step']}_{rqt['stream']}_{rqt['type']}.grib"
+                if not os.path.exists(filename):
+                    client.retrieve(
+                        request = rqt,
+                        target = filename
+                    )
+                print(f"Today's forecast not available, downloaded yesterday's forecast: {rqt.date.strftime('%d/%b/%Y')}")       
             fnames.append(filename)
     return(fnames)
 
 #%% Load
 
-def gen_raster(var, filename):
+def gen_raster(var, filename, delete = False):
     """
     Generates .tiff raster files from .grib files downloaded from ECMWF's Open Data through dwnl_atmdata
 
     var: str
         Code of the variable
-    d: str
-        Date of the downloaded variable file
+    filename: str
+        Path of the .grib file to be converted to .tiff
+    delete: bool, optional
+        If True, it will delete the original .grib file once the .tiff file is created. Default: False
 
     Returns:
     tiffpath: str
@@ -77,9 +109,13 @@ def gen_raster(var, filename):
     if not os.path.exists(tiffpath):
         print(var, " conversion")
         f = xr.load_dataset(filename, engine = "cfgrib")
+        if var == "msl":
+          f["msl"] = f.msl/1000 #kPa
         f = f.rio.write_crs("epsg:4326")
         f.rio.to_raster(tiffpath)
         f.close()
+        if delete:
+            os.remove(filename)
     return(tiffpath)
 
 def load_atmdata(varlst, fnames):
@@ -125,17 +161,20 @@ def get_colordict(array, cmap):
 def plot_atmdata_step(vardict, step, coord, stepsdict):
     """
     vardict: dict
-        Dictionary containing the rasters uploaded trhough load_atmdata
+        Dictionary containing the rasters uploaded trhough load_atmdata.
+        Returned by load_atmdata
     step: int
         Index of the desired step inside the list defined in stepsdict
     coord: list or tuple
         Coordinates of the map central point. Provide them as lat, lon
+    stepsdict: dict
+        Dictionary containing the steps codes needed for each variable. The standard step format is under "base".
 
     Returns:
     m: ipyleaflet.Map
     """
     namedict = {
-        "msl": "Mean sea level pressure [Pa]",
+        "msl": "Mean sea level pressure [kPa]",
         "2t": "2 meter temperature [K]",
         "tp": "Total Precipitation [m]",
         "10fgg15": "10 metre wind gust of at least 15 m/s [%]",
@@ -150,7 +189,7 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
     for var in vardict.keys():
         if var == "10fgg15": steps = stepsdict["10fgg15"]
         else: steps = stepsdict["base"]
-        r = [x for x in vardict[var] if f"step{steps[step]}" in x.name][0]
+        r = [x for x in vardict[var] if f"step{steps[step]}" in x.name][0] #extract the correct raster path
         print("Plotting ", namedict[var])
         client = TileClient(r)
         t = get_leaflet_tile_layer(client, name = namedict[var], opacity = 0.7, palette = palettedict[var], n_colors = 8)
@@ -169,7 +208,7 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
     m.layout.height = "700px"
     return(m)
 
-#%% Kept for compatibility
+#%% Functions kept for compatibility with Section 2 v1
 
 def dwnl_atmdata(variables, dates):
     """
