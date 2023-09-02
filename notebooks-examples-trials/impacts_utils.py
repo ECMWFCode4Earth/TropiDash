@@ -9,13 +9,14 @@ from IPython.display import display
 from localtileserver import get_leaflet_tile_layer, TileClient
 import matplotlib
 import numpy as np
+import os
 import pandas as pd
 import rasterio
 from rasterio.enums import Resampling
 import requests
 import json
 
-#%% Resample function
+#%% Resample raster function
 
 def resample_raster(path, fact = 0.5, rio = True, nodata = -3.40282e+38):
     """
@@ -23,49 +24,394 @@ def resample_raster(path, fact = 0.5, rio = True, nodata = -3.40282e+38):
     Issues:
         - This resampling method will create artifacts in areas with nodata
         - Does not work with Resampling.sum, which was the algorithm needed to 
+    Sources used to write the code:
+        1. https://rasterio.readthedocs.io/en/stable/topics/resampling.html
+        2. https://pygis.io/docs/e_raster_resample.html
     
     path: str
         Path to raster file
     fact: float
         Upscaling or downscaling factor. Default: 0.5 (i.e. halving the raster spatial resolution)
+    rio: bool, optional
+        If True, a method using rasterio is used. Not yet implemented a method using other 
+        packages (e.g. xarray)
+    nodata: float, optional
+        Value associated to nodata
+    
+    Returns:
+    outpath: str
+        Path to the resampled .tiff file
     """
     outpath = path.split(".")[0] + "_resampled." + path.split(".")[1]
     if rio:
-        with rasterio.open(path, "r") as dataset:
-            # resample data to target shape
-            data = dataset.read(
-                out_shape=(
-                    dataset.count,
-                    int(dataset.height * fact),
-                    int(dataset.width * fact)
-                ),
-                resampling = Resampling.bilinear,
-                masked = True
-            )
-            # scale image transform
-            transform = dataset.transform * dataset.transform.scale(
-                (dataset.width / data.shape[-1]),
-                (dataset.height / data.shape[-2])
-            )
+        if not os.path.exists(outpath):
+            with rasterio.open(path, "r") as dataset:
+                # resample data to target shape
+                data = dataset.read(
+                    out_shape=(
+                        dataset.count,
+                        int(dataset.height * fact),
+                        int(dataset.width * fact)
+                    ),
+                    resampling = Resampling.bilinear,
+                    masked = True
+                )
+                # scale image transform
+                transform = dataset.transform * dataset.transform.scale(
+                    (dataset.width / data.shape[-1]),
+                    (dataset.height / data.shape[-2])
+                )
 
-            # Write outputs
-            # set properties for output
-            dst_kwargs = dataset.meta.copy()
-            dst_kwargs.update(
-                {
-                    "crs": dataset.crs,
-                    "transform": transform,
-                    "width": data.shape[-1],
-                    "height": data.shape[-2],
-                    "nodata": 0,  
-                }
-            )
-            with rasterio.open(outpath, "w", **dst_kwargs) as dst:
-                # iterate through bands
-                for i in range(data.shape[0]):
-                        dst.write(data[i].astype(rasterio.float64), i+1)
+                # Write outputs
+                # set properties for output
+                dst_kwargs = dataset.meta.copy()
+                dst_kwargs.update(
+                    {
+                        "crs": dataset.crs,
+                        "transform": transform,
+                        "width": data.shape[-1],
+                        "height": data.shape[-2],
+                        "nodata": 0,  
+                    }
+                )
+                with rasterio.open(outpath, "w", **dst_kwargs) as dst:
+                    # iterate through bands
+                    for i in range(data.shape[0]):
+                            dst.write(data[i].astype(rasterio.float64), i+1)
         return(outpath)
     else:
         # method with xarray if needed
         # https://docs.xarray.dev/en/stable/generated/xarray.DataArray.coarsen.html
         pass
+
+# %% Coastal hazard functions
+
+def dwnl_coastalhaz(rp):
+    """
+    Downloads coastal hazard raster maps from The World Bank Data Catalog service
+    by providing the hazard return period.
+    Data source: https://datacatalog.worldbank.org/search/dataset/0038579/Global-coastal-flood-hazard
+    
+    rp: str
+        Return period.
+        Can be one of the following: 5yr, 10yr, 50yr, 100yr, 250yr, 500yr, 1000yr.
+
+    Returns:
+    None    
+    """
+    links = {
+            "5yr": "https://www.geonode-gfdrrlab.org/uploaded/layers/2019/10/16/ss_muis_rp0005m.tif",
+            "10yr": "https://www.geonode-gfdrrlab.org/uploaded/layers/2019/10/16/ss_muis_rp0010m.tif",
+            "50yr": "https://www.geonode-gfdrrlab.org/uploaded/layers/2019/10/16/ss_muis_rp0050m.tif",
+            "100yr": "https://www.geonode-gfdrrlab.org/uploaded/layers/2019/10/16/ss_muis_rp0100m.tif",
+            "250yr": "https://www.geonode-gfdrrlab.org/uploaded/layers/2019/10/16/ss_muis_rp0250m.tif",
+            "500yr": "https://www.geonode-gfdrrlab.org/uploaded/layers/2019/10/16/ss_muis_rp0500m.tif",
+            "1000yr": "https://www.geonode-gfdrrlab.org/uploaded/layers/2019/10/16/ss_muis_rp1000m.tif",
+            }
+    filename = f"data/impacts/coastalhaz_{rp}.tif"
+    if not os.path.exists(filename):
+        tif = requests.get(links[rp])
+        with open(filename, "wb") as tiffile:
+                tiffile.write(tif.content)
+                #need to compress the tif file when downloading it
+                print("Coastal hazard data - Download complete")
+
+def load_coastalhaz(rp, resample = True):
+    """
+    Loads coastal hazard raster maps downloaded through dwnl_coastalhaz
+    by providing the return period. Returns a path
+    
+    rp: str
+        Return period.
+        Can be one of the following: 5yr, 10yr, 50yr, 100yr, 250yr, 500yr, 1000yr.
+    resample: bool
+        If True, the raster is resampled at a lower spatial resolution
+    
+    Returns:
+    coh: str
+        Path to the coastal hazard .tif file
+    """
+    path = f"data/impacts/coastalhaz_{rp}.tif"
+    if resample:
+        print("Resampling coastal hazard layer to ease its plotting")
+        coh = resample_raster(path)
+    else:
+        coh = path
+    return(coh)
+
+def plot_coastalhaz(coh, rp, addlayer = True, coord = None, m = None):
+    """
+    Plot coastal hazard raster provided as a layer in an ipyleaflet map
+
+    coh: str
+        Path to coastal hazard .tiff file to be plotted
+    rp: str
+        Return period associated to coh. Can be one of the following: 5yr, 10yr, 50yr, 100yr, 250yr, 500yr, 1000yr.
+    addlayer: bool, optional
+        If True, the function will only add a layer to the ipyleaflet.Map provided
+        through m. If False, it will create a new ipyleaflet.Map. Default is True
+    coord: tuple of float, optional
+        Tuple containing latitude and longitude where to center the map. Only needed if 
+        addlayer = False. Default is None
+    m: ipyleaflet.Map, optional
+        Only if addlayer is True, m needs to be provided as an ipyleaflet.Map object. Default is None
+    
+    Returns:
+    m: ipyleaflet.Map
+    """
+    client = TileClient(coh)
+    t = get_leaflet_tile_layer(client, name = f"Coastal hazard - RP: {rp}", opacity = 0.7, palette = "Spectral_r")
+    if addlayer:
+        m.add_layer(t)
+    else:
+        m = Map(center = coord, zoom = 3)
+        m.add_layer(t)
+        m.add_control(LayersControl())
+        m.layout.height="700px"
+    return(m)
+
+# %% Cyclone Hazard functions
+
+def dwnl_cyclonehaz(rp):
+    """
+    Downloads cyclone hazard raster maps from The World Bank Data Catalog service
+    by providing the hazard return period
+    Data source: https://datacatalog.worldbank.org/search/dataset/0038577/Global-cyclone-hazard
+
+    rp: str
+        Return period.
+        Can be one of the following: 50yr, 100yr, 250yr, 500yr, 1000yr.
+    
+    Returns:
+    None
+    """
+    links = {
+            "50yr": "https://www.geonode-gfdrrlab.org/uploaded/layers/2019/02/26/viento_mundo_tr50_int1_Ai5zJup.tif",
+            "100yr": "https://www.geonode-gfdrrlab.org/uploaded/layers/2019/02/26/viento_mundo_tr100_int1_afg5XsL.tif",
+            "250yr": "https://www.geonode-gfdrrlab.org/uploaded/layers/2019/02/26/viento_mundo_tr250_int1.tif",
+            "500yr": "https://www.geonode-gfdrrlab.org/uploaded/layers/2019/02/26/viento_mundo_tr500_int1.tif",
+            "1000yr": "https://www.geonode-gfdrrlab.org/uploaded/layers/2019/02/26/viento_mundo_tr1000_int1.tif",
+            }
+    filename = f"data/impacts/cyclonehaz_{rp}.tif"
+    if not os.path.exists(filename):
+        tif = requests.get(links[rp])
+        with open(filename, "wb") as tiffile:
+                tiffile.write(tif.content)
+                print("Cyclone hazard download complete")
+
+def load_cyclonehaz(rp, open = False):
+    """
+    Loads coastal hazard raster maps downloaded through dwnl_coastalhaz
+    by providing the return period.
+
+    rp: str
+        Return period.
+        Can be one of the following: 50yr, 100yr, 250yr, 500yr, 1000yr.
+    open: bool
+        If True, it will open the file and return a rasterio.DatasetReader object
+    
+    Returns:
+    cyh: str or rasterio.DatasetReader object
+    """
+    path = f"data/impacts/cyclonehaz_{rp}.tif"
+    if open:
+        cyh = rasterio.open(path)
+    else:
+        cyh = path
+    return(cyh)
+
+def plot_cyclonehaz(cyh, rp, addlayer = True, coord = None, m = None):
+    """
+    Plots the cyclone hazard layer provided as input in an ipyleaflet map
+
+    cyh: str
+        Path to cyclone hazard .tiff file to be plotted
+    rp: str
+        Return period associated to cyh. Can be one of the following: 50yr, 100yr, 250yr, 500yr, 1000yr.
+    addlayer: bool, optional
+        If True, the function will only add a layer to the ipyleaflet.Map provided
+        through m. If False, it will create a new ipyleaflet.Map. Default is True
+    coord: tuple of float, optional
+        Tuple containing latitude and longitude where to center the map. Only needed if 
+        addlayer = False. Default is None
+    m: ipyleaflet.Map, optional
+        Only if addlayer is True, m needs to be provided as an ipyleaflet.Map object. Default is None
+    
+    Returns:
+    m: ipyleaflet.Map
+    """
+    client = TileClient(cyh)
+    t = get_leaflet_tile_layer(client, name = f"Cyclone hazard - RP: {rp}", opacity = 0.7, palette = "magma_r")
+    if addlayer:
+        m.add_layer(t)
+    else:
+        m = Map(center = coord, zoom = 3)
+        m.add_layer(t)
+        m.add_control(LayersControl())
+        m.layout.height="700px"
+    return(m)
+
+#%% Population functions
+
+def load_poplayer():
+    """
+    Loads the population layer with 10 km spatial resolution saved in data/impacts folder
+    
+    Returns:
+    r: rasterio.DatasetReader object
+    """
+    path = "data/impacts/ppp_2020_1km_Aggregated_resampled_10km_sum_clipped_3402na.tif"
+    r = rasterio.open(path)
+    return(r)
+
+def plot_poplayer(addlayer = True, coord = None, m = None):
+    """
+    Plots the population layer with 10km spatial resolution saved in data/impacts folder
+
+    addlayer: bool, optional
+        If True, the function will only add a layer to the ipyleaflet.Map provided
+        through m. If False, it will create a new ipyleaflet.Map. Default is True
+    coord: tuple of float, optional
+        Tuple containing latitude and longitude where to center the map. Only needed if 
+        addlayer = False. Default is None
+    m: ipyleaflet.Map, optional
+        Only if addlayer is True, m needs to be provided as an ipyleaflet.Map object. Default is None
+    
+    Returns:
+    m: ipyleaflet.Map
+    """
+    r = load_poplayer()
+    if addlayer:
+        client = TileClient(r)
+        t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km", opacity = 0.7, palette = "viridis", nodata = r.nodata)
+        m.add_layer(t)
+    else:
+        m = Map(center = coord, zoom = 3)
+        client = TileClient(r)
+        t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km", opacity = 0.7, palette = "viridis", nodata = r.nodata)
+        m.add_layer(t)
+        m.add_control(LayersControl())
+        m.layout.height = "700px"
+    r.close()
+    return(m)
+
+# %% World Risk Index functions
+
+def dwnl_riskidx():
+    """
+    Downloads the World Risk Index for 2022
+
+    Data source: https://data.humdata.org/dataset/1efb6ee7-051a-440f-a2cf-e652fecccf73
+    """
+    links = {
+     #     "meta": "https://data.humdata.org/dataset/1efb6ee7-051a-440f-a2cf-e652fecccf73/resource/9ab4cdc6-9682-45a6-8314-db5e0d49e7a7/download/worldriskindex-meta.xlsx",
+         "data": "https://data.humdata.org/dataset/1efb6ee7-051a-440f-a2cf-e652fecccf73/resource/1b47b40c-f746-427c-bbf8-8caa157e03da/download/worldriskindex-2022.csv",
+     #     "trend": "https://data.humdata.org/dataset/1efb6ee7-051a-440f-a2cf-e652fecccf73/resource/9ae68502-6011-4276-a99d-118bb2826323/download/worldriskindex-trend.csv"
+    }
+    for id in links:
+        f = requests.get(links[id])
+        if id == "meta":
+             fformat = "xlsx"
+        else:
+             fformat = "csv"
+        filename = f"data/impacts/worldriskindex22_{id}.{fformat}"
+        if not os.path.exists(filename):
+            with open(filename, "wb") as file:
+                    file.write(f.content)
+            print("World Risk Index ", id, " downloaded")
+
+def load_riskidx():
+    """
+    Load data in a DataFrame and keep only columns with the annual percentage of people of that
+    country exposed to severe tsunamis, severe coastal floods and sea level rise.
+
+    Returns:
+    csv: pandas.DataFrame
+        DataFrame containing countries names, ISO codes and indexes of exposition
+    """
+    csv = pd.read_csv("data/impacts/worldriskindex22_data.csv")
+    # cols = ["Country", "ISO3", "EI_02d_Base", "EI_03d_Base", "EI_07b_Base"]
+    cols = ["Country", "ISO3", "EI_02d_Norm", "EI_03d_Norm", "EI_07b_Norm"]
+    csv = csv.loc[:, cols]
+    cols = ["Country", "ISO3", "Tsunamis", "Coastal_floods", "Sea_level_rise"]
+    csv.columns = cols
+    return(csv)
+
+def plot_riskidx(var, csv = None, addlayer = True, coord = None, m = None):
+    """
+    Plots variables loaded from load_riskidx
+    World countries boundaries loaded from: https://public.opendatasoft.com/explore/dataset/world-administrative-boundaries/export/
+
+    var: str or list of str
+        Tags to be plotted selected from the World Risk Index possible indexes
+    csv: pandas.DataFrame, optional
+        load_riskidx output. Deafult is None, meaning csv will be obtained by calling load_riskidx()
+    addlayer: bool, optional
+        If True, the function will only add a layer to the ipyleaflet.Map provided
+        through m. If False, it will create a new ipyleaflet.Map. Default is True
+    coord: tuple of float, optional
+        Tuple containing latitude and longitude where to center the map. Only needed if 
+        addlayer = False. Default is None
+    m: ipyleaflet.Map, optional
+        Only if addlayer is True, m needs to be provided as an ipyleaflet.Map object. Default is None
+    
+    Returns:
+    m: ipyleaflet.Map
+    """
+    #Load risk data
+    if csv is None: csv = load_riskidx()
+    #Load world countries boundaries
+    f = requests.get("https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/world-administrative-boundaries/exports/geojson?lang=en&timezone=Europe%2FBerlin")
+    geo_json_data = json.loads(f.content)
+    for d in geo_json_data["features"]:
+          d["iso"] = d["properties"]["iso3"]
+    #Tool function
+    def createandadd(geo_json_data, csv, v, m):
+        #Layer selection dictionary
+        namedict = {
+            "Tsunamis": "Tsunamis Exposition Index - 2022",
+            "Coastal_floods": "Coastal floods Exposition Index - 2022",
+            "Sea_level_rise": "Sea level rise Exposition Index - 2022"
+        }
+        #Index explanation to be printed
+        indexdict = {
+            "Tsunamis": "Normalized Annually Averaged Persons Exposed To Severe Intensity (Coastal Run-Up Height 3.0 m or higher)",
+            "Coastal_floods": "Normalized Annually Averaged Persons Exposed To Severe Intensity (Inundation Height 1.0 m or higher)",
+            "Sea_level_rise": "Normalized Persons Potentially Exposed To Projected Sea Level Rise (Inundation Height 1.0 m or below)"
+        }
+        #Palettes to be used
+        palettedict = {
+            "Tsunamis": "",
+            "Coastal_floods": "",
+            "Sea_level_rise": ""
+        }
+        mapping = dict(zip(csv["ISO3"].str.strip(), csv[v]))
+        for d in geo_json_data["features"]:
+            if d["iso"] not in mapping:
+                mapping[d["iso"]] = 0
+        layer = Choropleth(
+                geo_data = geo_json_data,
+                choro_data = mapping,
+                name = namedict[v],
+                style = {'fillOpacity': 0.75, "color":"black"},
+                key_on = "iso")
+        m.add_layer(layer)
+        print(namedict[v], " - ", indexdict[v])
+        return(m)
+    #Plot
+    if addlayer:
+        if type(var) is list:
+            for v in var:
+                m = createandadd(geo_json_data, csv, v, m)        
+        else:
+            m = createandadd(geo_json_data, csv, var, m)
+    else:
+        m = Map(center = coord, zoom = 3)
+        if type(var) is list:
+            for v in var:
+                m = createandadd(geo_json_data, csv, v, m)  
+        else:
+            m = createandadd(geo_json_data, csv, var, m)
+        m.add_control(LayersControl())
+        m.layout.height="700px"
+    return(m)
