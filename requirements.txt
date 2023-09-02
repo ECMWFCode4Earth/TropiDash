@@ -16,5 +16,6 @@ Pillow
 rasterio
 requests
 rioxarray
+scipy
 voila
 xarray
