@@ -21,9 +21,11 @@ import json
 def resample_raster(path, fact = 0.5, rio = True, nodata = -3.40282e+38):
     """
     Resample a raster from its file path applying a factor
+    ## DOESN'T WORK PROPERLY ##
     Issues:
         - This resampling method will create artifacts in areas with nodata
         - Does not work with Resampling.sum, which was the algorithm needed to 
+        - The output file weigth is way higher than the original file 
     Sources used to write the code:
         1. https://rasterio.readthedocs.io/en/stable/topics/resampling.html
         2. https://pygis.io/docs/e_raster_resample.html
@@ -116,7 +118,7 @@ def dwnl_coastalhaz(rp):
                 #need to compress the tif file when downloading it
                 print("Coastal hazard data - Download complete")
 
-def load_coastalhaz(rp, resample = True):
+def load_coastalhaz(rp, resample = False):
     """
     Loads coastal hazard raster maps downloaded through dwnl_coastalhaz
     by providing the return period. Returns a path
@@ -124,8 +126,8 @@ def load_coastalhaz(rp, resample = True):
     rp: str
         Return period.
         Can be one of the following: 5yr, 10yr, 50yr, 100yr, 250yr, 500yr, 1000yr.
-    resample: bool
-        If True, the raster is resampled at a lower spatial resolution
+    resample: bool, optional
+        If True, the raster is resampled at a lower spatial resolution. Default is False
     
     Returns:
     coh: str
