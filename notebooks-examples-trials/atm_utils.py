@@ -141,23 +141,6 @@ def load_atmdata(varlst, fnames):
 
 #%% Plot
 
-def get_colordict(array, cmap):
-    """
-    array: numpy.array
-        Array containing the values of which the quantiles will be obtained
-    cmap: str
-        Name of the matplotlib colormap associated to the array
-
-    Returns:
-    dict
-        Dictionary containing Hex codes as keys and the array quantiles as values
-    """
-    n_col = 8
-    cmap = plt.get_cmap(cmap, n_col)
-    custom_palette = [mpl.colors.rgb2hex(cmap(i)) for i in range(cmap.N)]
-    quantiles = [round(np.quantile(array, q)) for q in np.linspace(0,1,n_col)]
-    return(dict(zip(quantiles, custom_palette)))
-
 def plot_atmdata_step(vardict, step, coord, stepsdict):
     """
     vardict: dict
@@ -165,7 +148,7 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
         Returned by load_atmdata
     step: int
         Index of the desired step inside the list defined in stepsdict
-    coord: list or tuple
+    coord: tuple
         Coordinates of the map central point. Provide them as lat, lon
     stepsdict: dict
         Dictionary containing the steps codes needed for each variable. The standard step format is under "base".
@@ -185,7 +168,7 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
         "tp": "PuBu",
         "10fgg15": "winter",
     }
-    m = Map(center=(coord[0], coord[1]), zoom = 3)
+    m = Map(center = coord, zoom = 3)
     for var in vardict.keys():
         if var == "10fgg15": steps = stepsdict["10fgg15"]
         else: steps = stepsdict["base"]
@@ -207,6 +190,23 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
     m.add_control(LayersControl())
     m.layout.height = "700px"
     return(m)
+
+def get_colordict(array, cmap):
+    """
+    array: numpy.array
+        Array containing the values of which the quantiles will be obtained
+    cmap: str
+        Name of the matplotlib colormap associated to the array
+
+    Returns:
+    dict
+        Dictionary containing Hex codes as keys and the array quantiles as values
+    """
+    n_col = 8
+    cmap = plt.get_cmap(cmap, n_col)
+    custom_palette = [mpl.colors.rgb2hex(cmap(i)) for i in range(cmap.N)]
+    quantiles = [round(np.quantile(array, q)) for q in np.linspace(0,1,n_col)]
+    return(dict(zip(quantiles, custom_palette)))
 
 #%% Functions kept for compatibility with Section 2 v1
 
