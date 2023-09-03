@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # isort: off
 
+import branca.colormap as bc
 import cfgrib
 from datetime import datetime, timedelta
 from ecmwf.opendata import Client
-from ipyleaflet import Choropleth, Map, basemap_to_tiles, LayersControl, LegendControl
+from ipyleaflet import Map, ColormapControl, LayersControl
 import ipywidgets as widgets
 from IPython.display import display
 from localtileserver import get_leaflet_tile_layer, TileClient
@@ -88,7 +89,40 @@ def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure"):
             fnames.append(filename)
     return(fnames)
 
+def dwnl_wind():
+    """
+    Custom function to download wind speed data
+    """
+    pass
+
 #%% Load
+
+def load_atmdata(varlst, fnames):
+    """
+    varlst: str, list of str
+        List containing strings of the variables to load
+    fnames: str, list of str
+        List containing the paths to downloaded data
+    
+    Returns:
+    vardict: dict
+        A dictionary of rasterio DatasetReader objects, each assigned to the corresponding variable
+    """
+    vardict = {}
+    for i, var in enumerate(varlst):
+        lst = []
+        tool = [x for x in fnames if var in x] #filenames containing the variable
+        for filename in tool:
+            lst.append(rasterio.open(gen_raster(var, filename)))
+        vardict[f"{var}"] = lst
+        print(var, " loaded")
+    return(vardict)
+
+def load_wind():
+    """
+    Custom function for wind speed data load
+    """
+    pass
 
 def gen_raster(var, filename, delete = False):
     """
@@ -118,27 +152,6 @@ def gen_raster(var, filename, delete = False):
             os.remove(filename)
     return(tiffpath)
 
-def load_atmdata(varlst, fnames):
-    """
-    varlst: str, list of str
-        List containing strings of the variables to load
-    fnames: str, list of str
-        List containing the paths to downloaded data
-    
-    Returns:
-    vardict: dict
-        A dictionary of rasterio DatasetReader objects, each assigned to the corresponding variable
-    """
-    vardict = {}
-    for i, var in enumerate(varlst):
-        lst = []
-        tool = [x for x in fnames if var in x] #filenames containing the variable
-        for filename in tool:
-            lst.append(rasterio.open(gen_raster(var, filename)))
-        vardict[f"{var}"] = lst
-        print(var, " loaded")
-    return(vardict)
-
 #%% Plot
 
 def plot_atmdata_step(vardict, step, coord, stepsdict):
@@ -163,10 +176,10 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
         "10fgg15": "10 metre wind gust of at least 15 m/s [%]",
     }
     palettedict = {
-        "msl": "cool",
-        "2t": "RdBu_r",
-        "tp": "PuBu",
-        "10fgg15": "winter",
+        "msl": bc.linear.Purples_07,
+        "2t": reverse_branca(bc.linear.RdBu_11),
+        "tp": bc.linear.PuBu_07,
+        "10fgg15": bc.linear.GnBu_09,
     }
     m = Map(center = coord, zoom = 3)
     for var in vardict.keys():
@@ -177,109 +190,93 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
         client = TileClient(r)
         t = get_leaflet_tile_layer(client, name = namedict[var], opacity = 0.7, palette = palettedict[var], n_colors = 8)
         m.add_layer(t)
-
-        # find a way to add a colormap
-        # in leaflet you can do it as:
-        # m.add_colorbar(colors=custom_palette, vmin=r.read(1).ravel().min(), vmax=r.read(1).ravel().max())
-        #
-        # doing as below works but the legends created are too big:
-        # colordict = get_colordict(r.read(1).ravel(), palettedict[var])
-        # legend = LegendControl(legend = colordict, name = namedict[var], position="topright")
-        # # legend = LegendControl({"low":"#24dbff", "medium":"#A55", "High":"#500"}, name = namedict[var], position="bottomleft")
-        # m.add_control(legend)
+        # add colorbar
+        minv = "%.2f" % round(r.read(1).ravel().min(), 1)
+        maxv = "%.2f" % round(r.read(1).ravel().max(), 1)
+        cmap_control = ColormapControl(
+                                        caption = namedict[var],
+                                        colormap = palettedict[var],
+                                        value_min = float(minv),
+                                        value_max = float(maxv),
+                                        position='topright',
+                                        transparent_bg=True
+                                        )
+        m.add(cmap_control)
     m.add_control(LayersControl())
     m.layout.height = "700px"
     return(m)
 
-def get_colordict(array, cmap):
+def reverse_branca(cmap):
     """
+    Reverses branca.colormap.linear instances
+    """
+    out = bc.LinearColormap(colors = list(reversed(cmap.colors)))
+    return(out)
+
+def get_colordict(array, cmap, var = None, n_col = 8):
+    """
+    Creates a dictionary containing values and cmap colors associated to an array's
+    values quantiles
+
     array: numpy.array
         Array containing the values of which the quantiles will be obtained
     cmap: str
         Name of the matplotlib colormap associated to the array
+    var: str, optional
+        Name of the variable. Needed for "tp"
+    n_col: int, optional
+        Number of colors to be extracted from cmap
 
     Returns:
     dict
         Dictionary containing Hex codes as keys and the array quantiles as values
     """
-    n_col = 8
     cmap = plt.get_cmap(cmap, n_col)
     custom_palette = [mpl.colors.rgb2hex(cmap(i)) for i in range(cmap.N)]
-    quantiles = [round(np.quantile(array, q)) for q in np.linspace(0,1,n_col)]
+    if var == "tp":
+        quantiles = [round(np.quantile(array, q), 3) for q in np.linspace(0,1,n_col)]
+    else:
+        quantiles = [round(np.quantile(array, q), 1) for q in np.linspace(0,1,n_col)]
     return(dict(zip(quantiles, custom_palette)))
 
-#%% Functions kept for compatibility with Section 2 v1
-
-def dwnl_atmdata(variables, dates):
+def get_colorbar(colordict, title, var):
     """
-    Function which replicates the code written by Laura
-    It downloads 10 day ahead forecasts from the dates specified in dates
-    It need the dates from which the forecast starts
-    """
-    fnames = []
-    today = datetime.today().strftime('%Y%m%d')
-    for var in variables:            
-        for d in dates:
-            if var == "10fgg15":
-                rqt = {
-                    "date": str(d), #date start of the forecast
-                    "time": 0,      #time start of the forecast, can be 0 or 12
-                    "step": "216-240",    #step of the forecast: 10 days
-                    "stream": "enfo",
-                    "type": "ep",
-                    "param": var,
-                }
-            else:
-                rqt = {
-                    "date": str(d), #date start of the forecast
-                    "time": 0,      #time start of the forecast, can be 0 or 12
-                    "step": 240,    #step of the forecast: 10 days
-                    "stream": "oper",
-                    "type": "fc",
-                    "levtype": "sfc",
-                    "param": var,
-                }
-            filename = f"data/atm/{var}_{rqt['date']}_{today}_time{rqt['time']}_step{rqt['step']}_{rqt['stream']}_{rqt['type']}.grib"
-            if not os.path.exists(filename):
-                client = Client(source = "ecmwf", beta = True)
-                client.retrieve(
-                    request = rqt,
-                    target = filename
-                )
-            fnames.append(filename)
-    return(fnames)
+    Create a plot with the colormap to be added to the ipyleaflet map
 
-def plot_atmdata_date(vardict, date, coord):
-    """
-    vardict: dict
-        Dictionary containing the rasters uploaded trhough load_atmdata
-    date: str, list of str
-        Dates considered
-    coord: list or tuple
-        Coordinates of the map central point. Provide them as lat, lon
-
+    colordict: dict
+        Output of get_colordict
+    title: str
+        Title to be assigned to the colormap
+    var: str
+        Name of the variable for which the colorbar is being computed. Needed to
+        create the output path
+    
     Returns:
-    m: ipyleaflet.Map
+    imgpath: str
+        Path to the colorbar plot, saved as .png
     """
-    namedict = {
-        "msl": "Mean sea level pressure [Pa]", #meansealevelpressure
-        "2t": "2 meter temperature [K]",
-        "tp": "Total Precipitation [m]",
-        "10fgg15": "10 metre wind gust of at least 15 m/s [%]",
-    }
-    palettedict = {
-        "msl": "cool", #meansealevelpressure
-        "2t": "RdBu_r",
-        "tp": "PuBu",
-        "10fgg15": "winter",
-    }
-    m = Map(center=(coord[0], coord[1]), zoom = 3)
-    for var in vardict.keys():
-        r = [x for x in vardict[var] if date in x.name][0]
-        print("Plotting ", namedict[var])
-        client = TileClient(r)
-        t = get_leaflet_tile_layer(client, name = namedict[var], opacity = 0.7, palette = palettedict[var])
-        m.add_layer(t)
-    m.add_control(LayersControl())
-    m.layout.height = "700px"
-    return(m)
+    squares = [(i, 1) for i in range(len(colordict.keys()))]
+    colors = [colordict[i] for i in colordict.keys()]
+    fig, ax = plt.subplots(1,1, )
+    plt.broken_barh(squares, (0,1), facecolors = colors)
+    # set x labels
+    ax.set_xticks([x+0.5 for x in range(len(colordict.keys()))])
+    ax.set_xticklabels(colordict.keys())
+    ax.tick_params('x', length = 0)
+    for tick in ax.get_xticklabels():
+        tick.set_fontname("tahoma")
+    # remove bounding box and y ticks
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.get_yaxis().set_ticks([])
+    # set aspect ration
+    ax.set_aspect(0.5)
+    # set title
+    ax.set_title(title, fontname = "tahoma")
+    # save and return path
+    imgpath = f"data/colorbars/colorbar_{var}.png"
+    fig.savefig(imgpath, bbox_inches = "tight")
+    plt.close(fig)
+    return(imgpath)
