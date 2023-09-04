@@ -372,13 +372,8 @@ def strike_probability_map(df_storm_forecast):
 
             # special cases
             if track.shape[0] == 1:
-                
-                ## args is not defined ##
-
-                # if args.verbosity >= 1:
-                #     print(f"number={number} segments=0 len=1")
-                # p = ll_to_ecef(track.lat.iat[0], track.lon.iat[0])
-                # pts.update(tree.query_ball_point(p, r=args.distance))
+                p = ll_to_ecef(track.lat.iat[0], track.lon.iat[0])
+                pts.update(tree.query_ball_point(p, r=args.distance))
                 continue
 
             ti = np.array([])
