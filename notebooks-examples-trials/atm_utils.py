@@ -6,8 +6,6 @@ import cfgrib
 from datetime import datetime, timedelta
 from ecmwf.opendata import Client
 from ipyleaflet import Map, ColormapControl, LayersControl
-import ipywidgets as widgets
-from IPython.display import display
 from localtileserver import get_leaflet_tile_layer, TileClient
 import matplotlib as mpl
 import matplotlib.pyplot as plt
