@@ -492,25 +492,26 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
             fill=False,
             weight=2,
         )
-        # Define the markers element for each position of the cyclone ensemble forecast
-        markers = []
-        for j in range(len(locs)):
-            marker = ipyleaflet.CircleMarker(
-                location=locs[j],
-                radius=1,
-                color=colours[colour],
-                popup=widgets.HTML(value=f'<b> {tmtstps[j]} </b>')
-            )
-            markers.append(marker)
-
+        if len(locations_f) <= 5:
+            # Define the markers element for each position of the cyclone ensemble forecast
+            markers = []
+            for j in range(len(locs)):
+                marker = ipyleaflet.CircleMarker(
+                    location=locs[j],
+                    radius=1,
+                    color=colours[colour],
+                    popup=widgets.HTML(value=f'<b> {tmtstps[j]} </b>')
+                )
+                markers.append(marker)
+            markers_layer = ipyleaflet.LayerGroup(layers=markers)
+            track_layer = ipyleaflet.LayerGroup(layers=[track, markers_layer])
+            tracks_layer.append(track_layer)
+        else:
+            tracks_layer.append(track)
+            
         colour += 1
         if colour == len(colours):
             colour = 0
-
-        markers_layer = ipyleaflet.LayerGroup(layers=markers)
-        track_layer = ipyleaflet.LayerGroup(layers=[track, markers_layer])
-
-        tracks_layer.append(track_layer)
         
         i += 1
         
@@ -537,7 +538,7 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
     # Define observed tracks polyline element for the map
     track_o = ipyleaflet.Polyline(
             locations=locations_o,
-            color= "black",
+            color= "#ff00ff",
             fill=False,
             weight=2,
         )
@@ -548,7 +549,7 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
         marker = ipyleaflet.CircleMarker(
             location = locations_o[o],
             radius=1,
-            color="black",
+            color="#ff00ff",
             popup=widgets.HTML(value=f'<b> {timesteps_o[o]} </b>')
         )
         marker_o.append(marker)

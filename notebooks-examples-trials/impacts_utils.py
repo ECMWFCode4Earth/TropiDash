@@ -286,6 +286,7 @@ def plot_poplayer(addlayer = True, coord = None, m = None):
     if addlayer:
         client = TileClient(r)
         t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km", opacity = 0.7, palette = "viridis", nodata = r.nodata)
+        m = Map(center = coord, zoom = 3)
         m.add_layer(t)
     else:
         m = Map(center = coord, zoom = 3)
