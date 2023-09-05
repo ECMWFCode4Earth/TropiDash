@@ -229,6 +229,7 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
                                     display_options = display_options,
                                     color_scale = palette)
             m.add_layer(wind_layer)
+        r.close() #close the raster dataset once plotted
     m.add_control(LayersControl())
     m.layout.height = "700px"
     return(m)
