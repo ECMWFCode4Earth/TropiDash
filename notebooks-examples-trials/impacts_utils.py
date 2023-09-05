@@ -3,12 +3,12 @@
 # isort: off
 
 #Necessary packages
-from ipyleaflet import Choropleth, Map, basemap_to_tiles, LayersControl
-import ipywidgets as widgets
-from IPython.display import display
+import branca.colormap as bc
+from ipyleaflet import Choropleth, Map, LayersControl, ColormapControl
 from localtileserver import get_leaflet_tile_layer, TileClient
-import matplotlib
-import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+# import numpy as np
 import os
 import pandas as pd
 import rasterio
@@ -16,75 +16,26 @@ from rasterio.enums import Resampling
 import requests
 import json
 
-#%% Resample raster function
+# %% General functions
 
-def resample_raster(path, fact = 0.5, rio = True, nodata = -3.40282e+38):
+def rgb_to_hex(rgb):
+    return '#{:02x}{:02x}{:02x}'.format(rgb[0], rgb[1], rgb[2])
+
+def get_colorlist(cmap, n_col = 10):
     """
-    Resample a raster from its file path applying a factor
-    ## DOESN'T WORK PROPERLY ##
-    Issues:
-        - This resampling method will create artifacts in areas with nodata
-        - Does not work with Resampling.sum, which was the algorithm needed to 
-        - The output file weigth is way higher than the original file 
-    Sources used to write the code:
-        1. https://rasterio.readthedocs.io/en/stable/topics/resampling.html
-        2. https://pygis.io/docs/e_raster_resample.html
-    
-    path: str
-        Path to raster file
-    fact: float
-        Upscaling or downscaling factor. Default: 0.5 (i.e. halving the raster spatial resolution)
-    rio: bool, optional
-        If True, a method using rasterio is used. Not yet implemented a method using other 
-        packages (e.g. xarray)
-    nodata: float, optional
-        Value associated to nodata
-    
+    Creates a list containing cmap colors in hex format
+
+    cmap: str
+        Name of the matplotlib colormap associated to the array
+    n_col: int, optional
+        Number of colors to be extracted from cmap. Default is 10
+
     Returns:
-    outpath: str
-        Path to the resampled .tiff file
+    list
+        List containing Hex codes (str)
     """
-    outpath = path.split(".")[0] + "_resampled." + path.split(".")[1]
-    if rio:
-        if not os.path.exists(outpath):
-            with rasterio.open(path, "r") as dataset:
-                # resample data to target shape
-                data = dataset.read(
-                    out_shape=(
-                        dataset.count,
-                        int(dataset.height * fact),
-                        int(dataset.width * fact)
-                    ),
-                    resampling = Resampling.bilinear,
-                    masked = True
-                )
-                # scale image transform
-                transform = dataset.transform * dataset.transform.scale(
-                    (dataset.width / data.shape[-1]),
-                    (dataset.height / data.shape[-2])
-                )
-
-                # Write outputs
-                # set properties for output
-                dst_kwargs = dataset.meta.copy()
-                dst_kwargs.update(
-                    {
-                        "crs": dataset.crs,
-                        "transform": transform,
-                        "width": data.shape[-1],
-                        "height": data.shape[-2],
-                        "nodata": 0,  
-                    }
-                )
-                with rasterio.open(outpath, "w", **dst_kwargs) as dst:
-                    # iterate through bands
-                    for i in range(data.shape[0]):
-                            dst.write(data[i].astype(rasterio.float64), i+1)
-        return(outpath)
-    else:
-        # method with xarray if needed
-        # https://docs.xarray.dev/en/stable/generated/xarray.DataArray.coarsen.html
-        pass
+    cmap = plt.get_cmap(cmap, n_col)
+    return([mpl.colors.rgb2hex(cmap(i)) for i in range(cmap.N)])
 
 # %% Coastal hazard functions
 
@@ -118,7 +69,7 @@ def dwnl_coastalhaz(rp):
                 #need to compress the tif file when downloading it
                 print("Coastal hazard data - Download complete")
 
-def load_coastalhaz(rp, resample = False):
+def load_coastalhaz(rp, resample = False, open = True):
     """
     Loads coastal hazard raster maps downloaded through dwnl_coastalhaz
     by providing the return period. Returns a path
@@ -128,15 +79,22 @@ def load_coastalhaz(rp, resample = False):
         Can be one of the following: 5yr, 10yr, 50yr, 100yr, 250yr, 500yr, 1000yr.
     resample: bool, optional
         If True, the raster is resampled at a lower spatial resolution. Default is False
+    open: bool, optional
+        If True, it will open the file and return a rasterio.DatasetReader object
+        otherwise, it will return the path to the file. Default is True.
     
     Returns:
-    coh: str
+    coh: str or rasterio.DatasetReader object
         Path to the coastal hazard .tif file
     """
     path = f"data/impacts/coastalhaz_{rp}.tif"
     if resample:
         print("Resampling coastal hazard layer to ease its plotting")
-        coh = resample_raster(path)
+        coh = resample_raster(path) #returns the path to resampled file
+        if open:
+            coh = rasterio.open(coh)
+    elif open:
+        coh = rasterio.open(path)
     else:
         coh = path
     return(coh)
@@ -145,8 +103,8 @@ def plot_coastalhaz(coh, rp, addlayer = True, coord = None, m = None):
     """
     Plot coastal hazard raster provided as a layer in an ipyleaflet map
 
-    coh: str
-        Path to coastal hazard .tiff file to be plotted
+    coh: rasterio.DatasetReader object
+        rasterio.DatasetReader object of the coastal hazard .tiff file to be plotted
     rp: str
         Return period associated to coh. Can be one of the following: 5yr, 10yr, 50yr, 100yr, 250yr, 500yr, 1000yr.
     addlayer: bool, optional
@@ -161,9 +119,22 @@ def plot_coastalhaz(coh, rp, addlayer = True, coord = None, m = None):
     Returns:
     m: ipyleaflet.Map
     """
+    palette = [(8, 29, 88),(34, 84, 163),(49, 165, 194),(151, 214, 184),(239, 248, 182),(255, 239, 165),(254, 191, 90),(252, 113, 52),(218, 20, 30),(128, 0, 38)]
+    palettehex = [rgb_to_hex(x) for x in palette]
     client = TileClient(coh)
-    t = get_leaflet_tile_layer(client, name = f"Coastal hazard - RP: {rp}", opacity = 0.7, palette = "Spectral_r")
+    t = get_leaflet_tile_layer(client, name = f"Coastal hazard - RP: {rp}", opacity = 0.7, palette = palettehex)
+    minv = "%.2f" % round(coh.read(1).ravel().min(), 1)
+    maxv = "%.2f" % round(coh.read(1).ravel().max(), 1)
     if addlayer:
+        cmap_control = ColormapControl(
+                                        caption = f"Coastal hazard - RP: {rp}",
+                                        colormap = bc.StepColormap(palettehex),
+                                        value_min = float(minv),
+                                        value_max = float(maxv),
+                                        position = 'topright',
+                                        transparent_bg = True
+                                        )
+        m.add(cmap_control)
         m.add_layer(t)
     else:
         m = Map(center = coord, zoom = 3)
@@ -201,7 +172,7 @@ def dwnl_cyclonehaz(rp):
                 tiffile.write(tif.content)
                 print("Cyclone hazard download complete")
 
-def load_cyclonehaz(rp, open = False):
+def load_cyclonehaz(rp, open = True):
     """
     Loads coastal hazard raster maps downloaded through dwnl_coastalhaz
     by providing the return period.
@@ -209,8 +180,9 @@ def load_cyclonehaz(rp, open = False):
     rp: str
         Return period.
         Can be one of the following: 50yr, 100yr, 250yr, 500yr, 1000yr.
-    open: bool
+    open: bool, optional
         If True, it will open the file and return a rasterio.DatasetReader object
+        otherwise, it will return the path to the file. Default is True.
     
     Returns:
     cyh: str or rasterio.DatasetReader object
@@ -226,8 +198,8 @@ def plot_cyclonehaz(cyh, rp, addlayer = True, coord = None, m = None):
     """
     Plots the cyclone hazard layer provided as input in an ipyleaflet map
 
-    cyh: str
-        Path to cyclone hazard .tiff file to be plotted
+    cyh: rasterio.DatasetReader object
+        rasterio.DatasetReader object of the cyclone hazard .tiff file to be plotted
     rp: str
         Return period associated to cyh. Can be one of the following: 50yr, 100yr, 250yr, 500yr, 1000yr.
     addlayer: bool, optional
@@ -242,12 +214,33 @@ def plot_cyclonehaz(cyh, rp, addlayer = True, coord = None, m = None):
     Returns:
     m: ipyleaflet.Map
     """
+    palettehex = get_colorlist("magma_r")
     client = TileClient(cyh)
-    t = get_leaflet_tile_layer(client, name = f"Cyclone hazard - RP: {rp}", opacity = 0.7, palette = "magma_r")
+    t = get_leaflet_tile_layer(client, name = f"Cyclone hazard - RP: {rp}", opacity = 0.7, palette = palettehex)
+    minv = "%.2f" % round(cyh.read(1).ravel().min(), 1)
+    maxv = "%.2f" % round(cyh.read(1).ravel().max(), 1)
     if addlayer:
+        cmap_control = ColormapControl(
+                                        caption = f"Cyclone hazard - RP: {rp}",
+                                        colormap = bc.StepColormap(palettehex),
+                                        value_min = float(minv),
+                                        value_max = float(maxv),
+                                        position = 'topright',
+                                        transparent_bg = True
+                                        )
+        m.add(cmap_control)
         m.add_layer(t)
     else:
         m = Map(center = coord, zoom = 3)
+        cmap_control = ColormapControl(
+                                        caption = f"Cyclone hazard - RP: {rp}",
+                                        colormap = bc.StepColormap(palettehex),
+                                        value_min = float(minv),
+                                        value_max = float(maxv),
+                                        position = 'topright',
+                                        transparent_bg = True
+                                        )
+        m.add(cmap_control)
         m.add_layer(t)
         m.add_control(LayersControl())
         m.layout.height="700px"
@@ -282,16 +275,27 @@ def plot_poplayer(addlayer = True, coord = None, m = None):
     Returns:
     m: ipyleaflet.Map
     """
+    palette = [(0, 25, 89),(14, 54, 94),(28, 84, 96),(62, 108, 84),(104, 122, 61),(154, 136, 45),(212, 148, 71),(249, 163, 129),(253, 182, 188),(250, 204, 250)]
+    palettehex = [rgb_to_hex(x) for x in palette]
     r = load_poplayer()
+    minv = "%.2f" % round(r.read(1).ravel().min(), 1)
+    maxv = "%.2f" % round(r.read(1).ravel().max(), 1)
     if addlayer:
         client = TileClient(r)
         t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km", opacity = 0.7, palette = "viridis", nodata = r.nodata)
-        m = Map(center = coord, zoom = 3)
-        m.add_layer(t)
     else:
         m = Map(center = coord, zoom = 3)
         client = TileClient(r)
-        t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km", opacity = 0.7, palette = "viridis", nodata = r.nodata)
+        t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km", opacity = 0.7, palette = palettehex, nodata = r.nodata)
+        cmap_control = ColormapControl(
+                                        caption = "Population count - 10km x 10km",
+                                        colormap = bc.StepColormap(palettehex),
+                                        value_min = float(minv),
+                                        value_max = float(maxv),
+                                        position = 'topright',
+                                        transparent_bg = True
+                                        )
+        m.add(cmap_control)
         m.add_layer(t)
         m.add_control(LayersControl())
         m.layout.height = "700px"
@@ -418,3 +422,73 @@ def plot_riskidx(var, csv = None, addlayer = True, coord = None, m = None):
         m.add_control(LayersControl())
         m.layout.height="700px"
     return(m)
+
+#%% Resample raster function
+
+def resample_raster(path, fact = 0.5, rio = True, nodata = -3.40282e+38):
+    """
+    Resample a raster from its file path applying a factor
+    ## DOESN'T WORK PROPERLY ##
+    Issues:
+        - This resampling method will create artifacts in areas with nodata
+        - Does not work with Resampling.sum, which was the algorithm needed to 
+        - The output file weigth is way higher than the original file 
+    Sources used to write the code:
+        1. https://rasterio.readthedocs.io/en/stable/topics/resampling.html
+        2. https://pygis.io/docs/e_raster_resample.html
+    
+    path: str
+        Path to raster file
+    fact: float
+        Upscaling or downscaling factor. Default: 0.5 (i.e. halving the raster spatial resolution)
+    rio: bool, optional
+        If True, a method using rasterio is used. Not yet implemented a method using other 
+        packages (e.g. xarray)
+    nodata: float, optional
+        Value associated to nodata
+    
+    Returns:
+    outpath: str
+        Path to the resampled .tiff file
+    """
+    outpath = path.split(".")[0] + "_resampled." + path.split(".")[1]
+    if rio:
+        if not os.path.exists(outpath):
+            with rasterio.open(path, "r") as dataset:
+                # resample data to target shape
+                data = dataset.read(
+                    out_shape=(
+                        dataset.count,
+                        int(dataset.height * fact),
+                        int(dataset.width * fact)
+                    ),
+                    resampling = Resampling.bilinear,
+                    masked = True
+                )
+                # scale image transform
+                transform = dataset.transform * dataset.transform.scale(
+                    (dataset.width / data.shape[-1]),
+                    (dataset.height / data.shape[-2])
+                )
+
+                # Write outputs
+                # set properties for output
+                dst_kwargs = dataset.meta.copy()
+                dst_kwargs.update(
+                    {
+                        "crs": dataset.crs,
+                        "transform": transform,
+                        "width": data.shape[-1],
+                        "height": data.shape[-2],
+                        "nodata": 0,  
+                    }
+                )
+                with rasterio.open(outpath, "w", **dst_kwargs) as dst:
+                    # iterate through bands
+                    for i in range(data.shape[0]):
+                            dst.write(data[i].astype(rasterio.float64), i+1)
+        return(outpath)
+    else:
+        # method with xarray if needed
+        # https://docs.xarray.dev/en/stable/generated/xarray.DataArray.coarsen.html
+        pass

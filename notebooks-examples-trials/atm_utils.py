@@ -6,8 +6,6 @@ import cfgrib
 from datetime import datetime, timedelta
 from ecmwf.opendata import Client
 from ipyleaflet import Map, ColormapControl, LayersControl
-import ipywidgets as widgets
-from IPython.display import display
 from localtileserver import get_leaflet_tile_layer, TileClient
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -175,42 +173,65 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
         "tp": "Total Precipitation [m]",
         "10fgg15": "10 metre wind gust of at least 15 m/s [%]",
     }
-    palettedict = {
-        "msl": bc.linear.Purples_07,
-        "2t": reverse_branca(bc.linear.RdBu_11),
-        "tp": bc.linear.PuBu_07,
-        "10fgg15": bc.linear.GnBu_09,
-    }
     m = Map(center = coord, zoom = 3)
     for var in vardict.keys():
-        if var == "10fgg15": steps = stepsdict["10fgg15"]
-        else: steps = stepsdict["base"]
+        palette = get_palette(var)
+        if var == "10fgg15":
+            steps = stepsdict["10fgg15"]
+        else:
+            steps = stepsdict["base"]
         r = [x for x in vardict[var] if f"step{steps[step]}" in x.name][0] #extract the correct raster path
         print("Plotting ", namedict[var])
         client = TileClient(r)
-        t = get_leaflet_tile_layer(client, name = namedict[var], opacity = 0.7, palette = palettedict[var], n_colors = 8)
+        t = get_leaflet_tile_layer(client, name = namedict[var], opacity = 0.7, palette = palette)
         m.add_layer(t)
         # add colorbar
         minv = "%.2f" % round(r.read(1).ravel().min(), 1)
         maxv = "%.2f" % round(r.read(1).ravel().max(), 1)
         cmap_control = ColormapControl(
                                         caption = namedict[var],
-                                        colormap = palettedict[var],
+                                        colormap = bc.StepColormap(palette),
                                         value_min = float(minv),
                                         value_max = float(maxv),
-                                        position='topright',
-                                        transparent_bg=True
+                                        position = 'topright',
+                                        transparent_bg = True
                                         )
         m.add(cmap_control)
     m.add_control(LayersControl())
     m.layout.height = "700px"
     return(m)
 
-def reverse_branca(cmap):
+def get_palette(var):
+    """
+    Returns hex codes for colors in the palette corresponding to the variable requested.
+    Palettes' RGB values are retrieved from the IPCC guide:
+    - https://www.ipcc.ch/site/assets/uploads/2022/09/IPCC_AR6_WGI_VisualStyleGuide_2022.pdf
+    - https://github.com/IPCC-WG1/colormaps
+
+    var: str
+        Code of the variable for which to return the palette
+    
+    Returns:
+    hex: list of str
+        List of 10 hex codes corresponding to 
+    """
+    def rgb_to_hex(rgb):
+        return '#{:02x}{:02x}{:02x}'.format(rgb[0], rgb[1], rgb[2])
+    palettedict = {
+        "msl": [(230, 240, 240),(182, 217, 228),(142, 192, 226),(118, 163, 228),(116, 130, 222),(121, 97, 199),(118, 66, 164),(107, 40, 121),(86, 22, 75),(54,14, 36)],
+        "2t": [(254, 254, 203),(251, 235, 153),(244, 204, 104),(235, 167, 84),(228, 134, 80),(209, 98, 76),(164, 70, 66),(114, 55, 46),(66, 40, 24),(25, 25, 0)],
+        "tp": [(255, 255, 229),(217, 235, 213),(180, 216, 197),(142, 197, 181),(105, 177, 165),(67, 158, 149),(44, 135, 127),(29, 110, 100),(14, 85, 74),(0, 60, 48)],
+        "10fgg15": [(255, 255, 229),(217, 235, 213),(180, 216, 197),(142, 197, 181),(105, 177, 165),(67, 158, 149),(44, 135, 127),(29, 110, 100),(14, 85, 74),(0, 60, 48)],
+        "wind": [(254, 252, 205),(235, 219, 144),(210, 192, 83),(170, 171, 32),(121, 154, 5),(70, 136, 22),(24, 114, 39),(13, 88, 44),(24, 61, 36),(23, 35, 18)]
+    }
+    hex = [rgb_to_hex(x) for x in palettedict[var]]
+    return(hex)
+
+def reverse_branca(brancacmap):
     """
     Reverses branca.colormap.linear instances
     """
-    out = bc.LinearColormap(colors = list(reversed(cmap.colors)))
+    out = bc.LinearColormap(colors = list(reversed(brancacmap.colors)))
     return(out)
 
 def get_colordict(array, cmap, var = None, n_col = 8):
