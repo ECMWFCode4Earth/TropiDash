@@ -71,20 +71,29 @@ def create_storms_df():
         Dataframe containing the forecast data for the active cyclones.
     """
     # Load cyclone dataframe with Mean sea level pressure value
+    # df_storms = pdbufr.read_bufr('data/tc_test_track_data.bufr',
     df_storms = pdbufr.read_bufr('data/tc_test_track_data.bufr',
         columns=("stormIdentifier", "longStormName", "ensembleMemberNumber", "year", "month", "day", "hour", "latitude", "longitude",
                  "pressureReducedToMeanSeaLevel"))
     # Load cyclone dataframe with Wind speed at 10m value
+    # df1 = pdbufr.read_bufr('data/tc_test_track_data.bufr',
     df1 = pdbufr.read_bufr('data/tc_test_track_data.bufr',
         columns=("stormIdentifier", "longStormName", "ensembleMemberNumber", "latitude", "longitude",
                  "windSpeedAt10M"))
-    # Load cyclone dataframe with timeperiod column
-    df2 = pdbufr.read_bufr('data/tc_test_track_data.bufr',
-        columns=("stormIdentifier", "longStormName", "ensembleMemberNumber", "latitude", "longitude",
-                 "timePeriod"))
+    # Build the dataframe with the timeperiod column
+    timeperiod = []
+    start_date = datetime(df_storms.year[0], df_storms.month[0], df_storms.day[0], df_storms.hour[0])
+    for cyclone in df_storms.stormIdentifier.unique():
+        df_cyclone = df_storms[df_storms.stormIdentifier == cyclone]
+        df_cyclone.reset_index(inplace=True, drop=True)
+        members = df_cyclone.ensembleMemberNumber.unique()
+        for member in members:
+            df_track = df_cyclone[df_cyclone.ensembleMemberNumber == member]
+            for i in range(len(df_track)):
+                timeperiod.append(6 * (i+1))
     # Add the Wind speed at 10m column to the storms dataframe 
     df_storms["windSpeedAt10M"] = df1.windSpeedAt10M
-    df_storms["timePeriod"] = df2.timePeriod
+    df_storms["timePeriod"] = timeperiod
     # Storms with number higher than 10 are not real storms (according to what Fernando said)
     drop_condition = df_storms.stormIdentifier < '11'
     df_storms = df_storms[drop_condition]
@@ -314,10 +323,11 @@ def strike_probability_map(df_storm_forecast):
     df["id"] = df.number
     
     # Set of general parameters for the pts algorithm
-    distance = 300.0e2 #300.0e3
+    distance = 200.0e3
     overlap = 0.7
     dist_circle = distance_from_overlap(distance, overlap)
-    basetime = datetime.strptime(df.date.iloc[0], '%Y%m%d')
+    basetime = datetime.strptime(min(df.date), '%Y%m%d')
+    filter_wind = 0.0
     
     # K-d tree building
     lat_max = df.lat.max() + 10
@@ -368,7 +378,7 @@ def strike_probability_map(df_storm_forecast):
 
         tracks = df[df.number == number]
         for id in set(tracks.id.tolist()):
-            track = tracks[tracks.id == id].sort_values("t")
+            track = tracks[(tracks.id == id) & (filter_wind <= tracks.wind)].sort_values("t")
 
             # special cases
             if track.shape[0] == 1:
