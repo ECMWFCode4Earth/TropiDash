@@ -2,7 +2,7 @@
 # isort: off
 
 import os
-import birdy
+# import birdy
 import requests
 import pdbufr
 import sys
@@ -91,7 +91,7 @@ def create_storms_df():
             df_track = df_cyclone[df_cyclone.ensembleMemberNumber == member]
             for i in range(len(df_track)):
                 timeperiod.append(6 * (i+1))
-    # Add the Wind speed at 10m column to the storms dataframe 
+    # Add the Wind speed at 10m column adn the timePeriod column to the storms dataframe 
     df_storms["windSpeedAt10M"] = df1.windSpeedAt10M
     df_storms["timePeriod"] = timeperiod
     # Storms with number higher than 10 are not real storms (according to what Fernando said)
@@ -565,7 +565,8 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
         marker_o.append(marker)
         
     # Define raster layer for strike probability map and its legend widget
-    palette = ["#c4ff70", "#6ae24c", "#2a9134", "#137547", "#054a29", "#2397d1", "#557ff3", "#143cdc", "#3910b4", "#1e0063"]
+    # palette = ["#c4ff70", "#6ae24c", "#2a9134", "#137547", "#046335", "#2397d1", "#557ff3", "#143cdc", "#3910b4", "#1e0063"]
+    palette = ["#8df52c", "#6ae24c", "#61bb30", "#508b15", "#057941", "#2397d1", "#557ff3", "#143cdc", "#3910b4", "#1e0063"]
     def make_palette_dict(pal):
         perc = ["0-10%", "11-20%", "21-30%", "31-40%", "41-50%", "51-60%", "61-70%", "71-80%", "81-90%", "91-100%"]
         dictionary = {perc[0]:pal[0], perc[1]:pal[1], perc[2]:pal[2], perc[3]:pal[3], perc[4]:pal[4], perc[5]:pal[5], perc[6]:pal[6], perc[7]:pal[7], perc[8]:pal[8], perc[9]:pal[9]}
