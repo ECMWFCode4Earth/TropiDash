@@ -314,7 +314,7 @@ def strike_probability_map(df_storm_forecast):
     df["id"] = df.number
     
     # Set of general parameters for the pts algorithm
-    distance = 300.0e3
+    distance = 300.0e2 #300.0e3
     overlap = 0.7
     dist_circle = distance_from_overlap(distance, overlap)
     basetime = datetime.strptime(df.date.iloc[0], '%Y%m%d')
