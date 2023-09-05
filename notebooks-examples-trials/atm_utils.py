@@ -6,6 +6,7 @@ import cfgrib
 from datetime import datetime, timedelta
 from ecmwf.opendata import Client
 from ipyleaflet import Map, ColormapControl, LayersControl
+from ipyleaflet.velocity import Velocity
 from localtileserver import get_leaflet_tile_layer, TileClient
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -43,8 +44,10 @@ def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure"):
     else:
         stdate = stdate.strftime('%Y%m%d')
     for var in variables:
-        if var == "10fgg15": steps = stepsdict["10fgg15"]
-        else: steps = stepsdict["base"]
+        if var == "10fgg15":
+            steps = stepsdict["10fgg15"]
+        else:
+            steps = stepsdict["base"]
         for s in steps:
             if var == "10fgg15":
                 rqt = {
@@ -54,6 +57,16 @@ def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure"):
                     "stream": "enfo",
                     "type": "ep",
                     "param": var,
+                }
+            elif var == "wind":
+                rqt = {
+                    "date": stdate, #date start of the forecast
+                    "time": 0,      #time start of the forecast, can be 0 or 12
+                    "step": s,      #step of the forecast: 1, 2, 5, 10 days
+                    "stream": "oper",
+                    "type": "fc",
+                    "levtype": "sfc",
+                    "param": ["10u", "10v"],
                 }
             else:
                 rqt = {
@@ -76,22 +89,16 @@ def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure"):
             except:
                 # Usually early in the morning the forecast of the current day is not available
                 # > get the forecast of the day before
-                rqt.date = rqt.date - timedelta(days = 1)
-                filename = f"data/atm/{var}_{rqt['date']}_time{rqt['time']}_step{rqt['step']}_{rqt['stream']}_{rqt['type']}.grib"
+                rqt['date'] = datetime.strptime(rqt['date'], '%Y%m%d') - timedelta(days = 1)
+                filename = f"data/atm/{var}_{rqt['date'].strftime('%Y%m%d')}_time{rqt['time']}_step{rqt['step']}_{rqt['stream']}_{rqt['type']}.grib"
                 if not os.path.exists(filename):
                     client.retrieve(
                         request = rqt,
                         target = filename
                     )
-                print(f"Today's forecast not available, downloaded yesterday's forecast: {rqt.date.strftime('%d/%b/%Y')}")       
+                print(f"Today's forecast not available, downloaded yesterday's forecast: {rqt['date'].strftime('%d/%b/%Y')}")       
             fnames.append(filename)
     return(fnames)
-
-def dwnl_wind():
-    """
-    Custom function to download wind speed data
-    """
-    pass
 
 #%% Load
 
@@ -104,23 +111,23 @@ def load_atmdata(varlst, fnames):
     
     Returns:
     vardict: dict
-        A dictionary of rasterio DatasetReader objects, each assigned to the corresponding variable
+        A dictionary of rasterio DatasetReader objects and xarray.Dataset objects,
+        each assigned to the corresponding variable
     """
     vardict = {}
     for i, var in enumerate(varlst):
         lst = []
         tool = [x for x in fnames if var in x] #filenames containing the variable
         for filename in tool:
-            lst.append(rasterio.open(gen_raster(var, filename)))
+            if var != "wind":
+                lst.append(rasterio.open(gen_raster(var, filename)))
+            else:
+                nc = xr.open_dataset(gen_raster(var, filename))
+                nc = nc.assign_attrs(name = filename)
+                lst.append(nc)
         vardict[f"{var}"] = lst
         print(var, " loaded")
     return(vardict)
-
-def load_wind():
-    """
-    Custom function for wind speed data load
-    """
-    pass
 
 def gen_raster(var, filename, delete = False):
     """
@@ -137,14 +144,20 @@ def gen_raster(var, filename, delete = False):
     tiffpath: str
         Path to the created .tiff file
     """
-    tiffpath = ".".join([filename.split(".")[0], "tiff"])
+    if var != "wind":
+        tiffpath = ".".join([filename.split(".")[0], "tiff"])
+    else:
+        tiffpath = ".".join([filename.split(".")[0], "nc"])
     if not os.path.exists(tiffpath):
         print(var, " conversion")
         f = xr.load_dataset(filename, engine = "cfgrib")
         if var == "msl":
           f["msl"] = f.msl/1000 #kPa
         f = f.rio.write_crs("epsg:4326")
-        f.rio.to_raster(tiffpath)
+        if var != "wind":
+            f.rio.to_raster(tiffpath)
+        else:
+            f.to_netcdf(tiffpath)
         f.close()
         if delete:
             os.remove(filename)
@@ -172,6 +185,7 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
         "2t": "2 meter temperature [K]",
         "tp": "Total Precipitation [m]",
         "10fgg15": "10 metre wind gust of at least 15 m/s [%]",
+        "wind": "10 metre wind component [m/s]",
     }
     m = Map(center = coord, zoom = 3)
     for var in vardict.keys():
@@ -182,21 +196,39 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
             steps = stepsdict["base"]
         r = [x for x in vardict[var] if f"step{steps[step]}" in x.name][0] #extract the correct raster path
         print("Plotting ", namedict[var])
-        client = TileClient(r)
-        t = get_leaflet_tile_layer(client, name = namedict[var], opacity = 0.7, palette = palette)
-        m.add_layer(t)
-        # add colorbar
-        minv = "%.2f" % round(r.read(1).ravel().min(), 1)
-        maxv = "%.2f" % round(r.read(1).ravel().max(), 1)
-        cmap_control = ColormapControl(
-                                        caption = namedict[var],
-                                        colormap = bc.StepColormap(palette),
-                                        value_min = float(minv),
-                                        value_max = float(maxv),
-                                        position = 'topright',
-                                        transparent_bg = True
-                                        )
-        m.add(cmap_control)
+        if var != "wind":
+            client = TileClient(r)
+            t = get_leaflet_tile_layer(client, name = namedict[var], opacity = 0.7, palette = palette)
+            m.add_layer(t)
+            # add colorbar
+            minv = "%.2f" % round(r.read(1).ravel().min(), 1)
+            maxv = "%.2f" % round(r.read(1).ravel().max(), 1)
+            cmap_control = ColormapControl(
+                                            caption = namedict[var],
+                                            colormap = bc.StepColormap(palette),
+                                            value_min = float(minv),
+                                            value_max = float(maxv),
+                                            position = 'topright',
+                                            transparent_bg = True
+                                            )
+            m.add(cmap_control)
+        else:
+            display_options = {
+                'velocityType': 'Global Wind',
+                'displayPosition': 'bottomleft',
+                'displayEmptyString': 'No wind data'
+            }
+            wind_layer = Velocity(  name = namedict[var],
+                                    data=r,
+                                    zonal_speed='u10',
+                                    meridional_speed='v10',
+                                    latitude_dimension='latitude',
+                                    longitude_dimension='longitude',
+                                    velocity_scale=0.01,
+                                    max_velocity=float(max(r["v10"].values.ravel().max(), r["u10"].values.ravel().max())),
+                                    display_options = display_options,
+                                    color_scale = palette)
+            m.add_layer(wind_layer)
     m.add_control(LayersControl())
     m.layout.height = "700px"
     return(m)
@@ -226,6 +258,8 @@ def get_palette(var):
     }
     hex = [rgb_to_hex(x) for x in palettedict[var]]
     return(hex)
+
+# %% Additional functions
 
 def reverse_branca(brancacmap):
     """

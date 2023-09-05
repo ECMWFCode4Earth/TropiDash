@@ -1,0 +1,42 @@
+<PAMDataset>
+  <PAMRasterBand band="1">
+    <Description>2 metre temperature</Description>
+    <Metadata>
+      <MDI key="GRIB_cfName">air_temperature</MDI>
+      <MDI key="GRIB_cfVarName">t2m</MDI>
+      <MDI key="GRIB_dataType">fc</MDI>
+      <MDI key="GRIB_gridDefinitionDescription">Latitude/longitude</MDI>
+      <MDI key="GRIB_gridType">regular_ll</MDI>
+      <MDI key="GRIB_iDirectionIncrementInDegrees">0.4</MDI>
+      <MDI key="GRIB_iScansNegatively">0</MDI>
+      <MDI key="GRIB_jDirectionIncrementInDegrees">0.4</MDI>
+      <MDI key="GRIB_jPointsAreConsecutive">0</MDI>
+      <MDI key="GRIB_jScansPositively">0</MDI>
+      <MDI key="GRIB_latitudeOfFirstGridPointInDegrees">90.0</MDI>
+      <MDI key="GRIB_latitudeOfLastGridPointInDegrees">-90.0</MDI>
+      <MDI key="GRIB_longitudeOfFirstGridPointInDegrees">180.0</MDI>
+      <MDI key="GRIB_longitudeOfLastGridPointInDegrees">179.6</MDI>
+      <MDI key="GRIB_missingValue">3.4028234663852886e+38</MDI>
+      <MDI key="GRIB_name">2 metre temperature</MDI>
+      <MDI key="GRIB_numberOfPoints">405900</MDI>
+      <MDI key="GRIB_NV">0</MDI>
+      <MDI key="GRIB_Nx">900</MDI>
+      <MDI key="GRIB_Ny">451</MDI>
+      <MDI key="GRIB_paramId">167</MDI>
+      <MDI key="GRIB_shortName">2t</MDI>
+      <MDI key="GRIB_stepType">instant</MDI>
+      <MDI key="GRIB_stepUnits">1</MDI>
+      <MDI key="GRIB_typeOfLevel">heightAboveGround</MDI>
+      <MDI key="GRIB_units">K</MDI>
+      <MDI key="long_name">2 metre temperature</MDI>
+      <MDI key="standard_name">air_temperature</MDI>
+      <MDI key="STATISTICS_APPROXIMATE">YES</MDI>
+      <MDI key="STATISTICS_MAXIMUM">313.43667602539</MDI>
+      <MDI key="STATISTICS_MEAN">279.92014712754</MDI>
+      <MDI key="STATISTICS_MINIMUM">196.74917602539</MDI>
+      <MDI key="STATISTICS_STDDEV">22.825067734531</MDI>
+      <MDI key="STATISTICS_VALID_PERCENT">100</MDI>
+      <MDI key="units">K</MDI>
+    </Metadata>
+  </PAMRasterBand>
+</PAMDataset>
