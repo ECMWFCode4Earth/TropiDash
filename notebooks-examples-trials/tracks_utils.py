@@ -17,13 +17,13 @@ import numpy as np
 import xarray as xr
 import haversine as hs
 import ipywidgets as widgets
+import branca.colormap as bc
 
 from math import isnan
 from eccodes import *
 from ecmwf.opendata import Client
 from datetime import datetime, timedelta
 from itertools import chain, tee
-from ipywidgets import interact
 from IPython.display import display
 from scipy.optimize import root_scalar
 from scipy.spatial import KDTree
@@ -564,16 +564,23 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
         )
         marker_o.append(marker)
         
-    # Define raster layer for strike probability map and its legend widget
+    # Define raster layer for strike probability map and its colormap widget
     # palette = ["#c4ff70", "#6ae24c", "#2a9134", "#137547", "#046335", "#2397d1", "#557ff3", "#143cdc", "#3910b4", "#1e0063"]
     palette = ["#8df52c", "#6ae24c", "#61bb30", "#508b15", "#057941", "#2397d1", "#557ff3", "#143cdc", "#3910b4", "#1e0063"]
-    def make_palette_dict(pal):
-        perc = ["0-10%", "11-20%", "21-30%", "31-40%", "41-50%", "51-60%", "61-70%", "71-80%", "81-90%", "91-100%"]
-        dictionary = {perc[0]:pal[0], perc[1]:pal[1], perc[2]:pal[2], perc[3]:pal[3], perc[4]:pal[4], perc[5]:pal[5], perc[6]:pal[6], perc[7]:pal[7], perc[8]:pal[8], perc[9]:pal[9]}
-        return dictionary
-    palette_dict = make_palette_dict(palette)
     stp_map = get_leaflet_tile_layer(client, name = "Strike Probability Map", opacity = 0.8, palette = palette, nodata=0.0)
-    legend_control = ipyleaflet.LegendControl(palette_dict, name="Strike Probability", position="topright")
+    
+    with rasterio.open(tif_path) as r:
+        minv = "%.2f" % round(r.read(1).ravel().min(), 1)
+        maxv = "%.2f" % round(r.read(1).ravel().max(), 1)
+    
+    cmap_control = ipyleaflet.ColormapControl(
+                                caption = "Strike probability",
+                                colormap = bc.StepColormap(palette),
+                                value_min = float(minv),
+                                value_max = float(maxv),
+                                position = 'topright',
+                                transparent_bg = True
+                                )
     
     # Add observed track to the map
     markers_layer_o = ipyleaflet.LayerGroup(layers=marker_o)
@@ -591,9 +598,9 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
     tracks_layer_group = ipyleaflet.LayerGroup(layers=tracks_layer, name='Forecasted Ensemble Tracks')
     tc_track_map.add_layer(tracks_layer_group)
     
-    # Add strike probability map layer to the map and leged
+    # Add strike probability map layer to the map and colormap
     tc_track_map.add_layer(stp_map)
-    tc_track_map.add_control(legend_control)
+    tc_track_map.add_control(cmap_control)
 
     # Add layers widget to the map
     layers_control = ipyleaflet.LayersControl()
