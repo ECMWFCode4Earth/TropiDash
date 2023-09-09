@@ -16,4 +16,6 @@ dependencies:
   - cfgrib
   - matplotlib
   - voila
+  - bqplot
+  - magics
 prefix: /opt/miniconda3/envs/TropiDash
