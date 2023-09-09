@@ -23,7 +23,7 @@ from localtileserver import get_leaflet_tile_layer, TileClient
 def download_tracks_forecast(start_date):
     """
     Downloads the forecast of the tropical cyclone tracks from ECMWF's open data dataset azure
-    and saves them in a bufr file "data/tc_track_data_{date of the forecast}.bufr".
+    and saves them in a bufr file "data/tracks/{date of the forecast}.bufr".
     If today's forecast is not available yet, it downloads yesterday's forecast.
     
     start_date: datetime object
@@ -34,7 +34,7 @@ def download_tracks_forecast(start_date):
         Day of the forecast of which the data have been downloaded
     """
     # Check if the file already exists
-    if os.path.exists(f"data/tc_track_data_{start_date.strftime('%Y%m%d')}.bufr"):
+    if os.path.exists(f"data/tracks/{start_date.strftime('%Y%m%d')}.bufr"):
         return start_date
     else:
         client = Client(source="azure")
@@ -45,7 +45,7 @@ def download_tracks_forecast(start_date):
                 stream="enfo",
                 type="tf",
                 step=240,
-                target=f"data/tc_track_data_{start_date.strftime('%Y%m%d')}.bufr",
+                target=f"data/tracks/{start_date.strftime('%Y%m%d')}.bufr",
             );
             return start_date
         # Usually early in the morning the forecast of the current day is not available
@@ -57,7 +57,7 @@ def download_tracks_forecast(start_date):
                 stream="enfo",
                 type="tf",
                 step=240,
-                target=f"data/tc_track_data_{start_date.strftime('%Y%m%d')}.bufr",
+                target=f"data/tracks/{start_date.strftime('%Y%m%d')}.bufr",
             );
             return start_date
 
@@ -75,12 +75,12 @@ def create_storms_df(start_date):
     """
     # Load cyclone dataframe with Mean sea level pressure value
     # df_storms = pdbufr.read_bufr('data/tc_test_track_data.bufr',
-    df_storms = pdbufr.read_bufr(f"data/tc_track_data_{start_date.strftime('%Y%m%d')}.bufr",
+    df_storms = pdbufr.read_bufr(f"data/tracks/{start_date.strftime('%Y%m%d')}.bufr",
         columns=("stormIdentifier", "longStormName", "ensembleMemberNumber", "year", "month", "day", "hour", "latitude", "longitude",
                  "pressureReducedToMeanSeaLevel"))
     # Load cyclone dataframe with Wind speed at 10m value
     # df1 = pdbufr.read_bufr('data/tc_test_track_data.bufr',
-    df1 = pdbufr.read_bufr(f"data/tc_track_data_{start_date.strftime('%Y%m%d')}.bufr",
+    df1 = pdbufr.read_bufr(f"data/tracks/{start_date.strftime('%Y%m%d')}.bufr",
         columns=("stormIdentifier", "longStormName", "ensembleMemberNumber", "latitude", "longitude",
                  "windSpeedAt10M"))
     # Build the dataframe with the timeperiod column
@@ -168,11 +168,15 @@ def mean_forecast_track(df_storm):
     members = df_storm.ensembleMemberNumber.unique()
     df_lat_tracks = pd.DataFrame()
     df_lon_tracks = pd.DataFrame()
+    df_prs_tracks = pd.DataFrame()
+    df_wds_tracks = pd.DataFrame()
     for member in members:
         df_track = df_storm[df_storm.ensembleMemberNumber == member]
         df_track.reset_index(drop=True, inplace=True)
         df_lat_tracks[f'latitude{member}'] = df_track.latitude
         df_lon_tracks[f'longitude{member}'] = df_track.longitude
+        df_prs_tracks[f'pressure{member}'] = df_track.pressureReducedToMeanSeaLevel
+        df_wds_tracks[f'wind{member}'] = df_track.windSpeedAt10M
     # Add date information for the average track
     df_track.reset_index(drop=True, inplace=True)
     start = datetime(df_track.iloc[0]['year'], df_track.iloc[0]['month'], df_track.iloc[0]['day'], df_track.iloc[0]['hour'])
@@ -181,17 +185,23 @@ def mean_forecast_track(df_storm):
     # Cycle through the rows of df_lat_track and df_lon_tracks to compute the average track lat,lon
     mean_track_coord = []
     timesteps = []
-    # radii = []
+    pressures = []
+    winds = []
+    
     for t in range(len(df_lat_tracks)):
         lat = df_lat_tracks.iloc[t].dropna().to_numpy()
         lon = df_lon_tracks.iloc[t].dropna().to_numpy()
+        prs = df_prs_tracks.iloc[t].dropna().to_numpy()
+        wds = df_wds_tracks.iloc[t].dropna().to_numpy()
         date = dates[t].strftime("%d-%m-%Y %H:%M")
         if len(lat) > 0:
             mean_lat_lon = meanposit(len(lat), lat, lon)
+            pressures.append(prs.mean())
+            winds.append(wds.mean())
             mean_track_coord.append(mean_lat_lon)
             timesteps.append(date)
         
-    return mean_track_coord, timesteps
+    return mean_track_coord, timesteps, pressures, winds
 
 def forecast_tracks_locations(df_storm_forecast):
     """
@@ -209,7 +219,8 @@ def forecast_tracks_locations(df_storm_forecast):
     members = df_storm_forecast.ensembleMemberNumber.unique()
     locations = []
     timesteps = []
-    radii = []
+    pressures = []
+    wind_speeds = []
     for member in members:
         df_track = df_storm_forecast[df_storm_forecast.ensembleMemberNumber == member]
         df_track.reset_index(drop=True, inplace=True)
@@ -220,15 +231,23 @@ def forecast_tracks_locations(df_storm_forecast):
         latitude = df_track.latitude.tolist()
         longitude = df_track.longitude.tolist()
         dates = df_track.date.tolist()
+        pressure = df_track.pressureReducedToMeanSeaLevel.tolist()
+        wind_speed = df_track.windSpeedAt10M.tolist()
         locs = []
         tmtstps = []
+        press = []
+        winds = []
         for i in range(len(latitude)):
             loc = (latitude[i], longitude[i])
             locs.append(loc)
             tmtstps.append(dates[i].strftime("%d-%m-%Y %H:%M"))
+            press.append(pressure[i] * 10**-2) # Pa to hPa
+            winds.append(wind_speed[i])
         locations.append(locs)
         timesteps.append(tmtstps)
-    return locations, timesteps
+        pressures.append(press)
+        wind_speeds.append(winds)
+    return locations, timesteps, pressures, wind_speeds
 
 def observed_track_locations(df_storm_observed):
     """
@@ -386,7 +405,7 @@ def strike_probability_map(df_storm_forecast):
             # special cases
             if track.shape[0] == 1:
                 p = ll_to_ecef(track.lat.iat[0], track.lon.iat[0])
-                pts.update(tree.query_ball_point(p, r=args.distance))
+                pts.update(tree.query_ball_point(p, r=distance))
                 continue
 
             ti = np.array([])
@@ -476,9 +495,9 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
     client = TileClient(tif_path)
     
     # create lists of locations
-    locations_f, timesteps_f = forecast_tracks_locations(df_f)
+    locations_f, timesteps_f, pressures_f, winds_f = forecast_tracks_locations(df_f)
     locations_o, timesteps_o = observed_track_locations(df_storm_observed)
-    locations_avg, timesteps_avg = mean_forecast_track(df_storm_forecast)
+    locations_avg, timesteps_avg, pressures_avg, winds_avg = mean_forecast_track(df_storm_forecast)
     
     # Create the basemap for plotting
     tc_track_map = ipyleaflet.Map(
@@ -497,6 +516,8 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
     for locs in locations_f:
 
         tmtstps = timesteps_f[i]
+        press = pressures_f[i]
+        wind = winds_f[i]
         
         # Define the ensemble track polyline for the map
         track = ipyleaflet.Polyline(
@@ -513,7 +534,7 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
                     location=locs[j],
                     radius=1,
                     color=colours[colour],
-                    popup=widgets.HTML(value=f'<b> {tmtstps[j]} </b>')
+                    popup=widgets.HTML(value=f'<center><b>{tmtstps[j]}</b> <br> Pressure: {press[j]} hPa <br> Wind speed: {wind[j]:.2f} m/s</center>')
                 )
                 markers.append(marker)
             markers_layer = ipyleaflet.LayerGroup(layers=markers)
@@ -544,7 +565,7 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
             location = locations_avg[avg],
             radius=1,
             color="black",
-            popup=widgets.HTML(value=f'<b> {timesteps_avg[avg]} </b>')
+            popup=widgets.HTML(value=f'<center><b> {timesteps_avg[avg]} </b> <br> Pressure: {pressures_avg[avg]} hPa <br> Wind speed: {winds_avg[avg]:.2f} m/s</center>')
         )
         marker_avg.append(marker)
     
