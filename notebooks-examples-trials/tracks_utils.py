@@ -2,29 +2,20 @@
 # isort: off
 
 import os
-# import birdy
-import requests
 import pdbufr
-import sys
-import traceback
-import re
 import math
 import ipyleaflet
 import rasterio
-import rioxarray
 import pandas as pd
 import numpy as np
 import xarray as xr
-import haversine as hs
 import ipywidgets as widgets
 import branca.colormap as bc
 
-from math import isnan
 from eccodes import *
 from ecmwf.opendata import Client
 from datetime import datetime, timedelta
 from itertools import chain, tee
-from IPython.display import display
 from scipy.optimize import root_scalar
 from scipy.spatial import KDTree
 from localtileserver import get_leaflet_tile_layer, TileClient
@@ -32,39 +23,51 @@ from localtileserver import get_leaflet_tile_layer, TileClient
 def download_tracks_forecast(start_date):
     """
     Downloads the forecast of the tropical cyclone tracks from ECMWF's open data dataset azure
-    and saves them in a bufr file "data/tc_test_track_data.bufr".
+    and saves them in a bufr file "data/tc_track_data_{date of the forecast}.bufr".
     If today's forecast is not available yet, it downloads yesterday's forecast.
     
     start_date: datetime object
         Day of the forecast of which the data want to be downloaded
-    """
-    client = Client(source="azure")
-    try:
-        client.retrieve(
-            date=int(start_date.strftime("%Y%m%d")),
-            time=0,
-            stream="enfo",
-            type="tf",
-            step=240,
-            target="data/tc_test_track_data.bufr",
-        );
-    # Usually early in the morning the forecast of the current day is not available
-    except:
-        start_date = start_date - timedelta(days=1)
-        client.retrieve(
-            date=int(start_date.strftime("%Y%m%d")),
-            time=0,
-            stream="enfo",
-            type="tf",
-            step=240,
-            target="data/tc_test_track_data.bufr",
-        );
-        print(f'Today\'s forecast not available, downloaded yesterday\'s forecast: {start_date.strftime("%d %b %Y")}')
 
-def create_storms_df():
+    Returns:
+    start_date: datetime object
+        Day of the forecast of which the data have been downloaded
+    """
+    # Check if the file already exists
+    if os.path.exists(f"data/tc_track_data_{start_date.strftime('%Y%m%d')}.bufr"):
+        return start_date
+    else:
+        client = Client(source="azure")
+        try:
+            client.retrieve(
+                date=int(start_date.strftime("%Y%m%d")),
+                time=0,
+                stream="enfo",
+                type="tf",
+                step=240,
+                target=f"data/tc_track_data_{start_date.strftime('%Y%m%d')}.bufr",
+            );
+            return start_date
+        # Usually early in the morning the forecast of the current day is not available
+        except:
+            start_date = start_date - timedelta(days=1)
+            client.retrieve(
+                date=int(start_date.strftime("%Y%m%d")),
+                time=0,
+                stream="enfo",
+                type="tf",
+                step=240,
+                target=f"data/tc_track_data_{start_date.strftime('%Y%m%d')}.bufr",
+            );
+            return start_date
+
+def create_storms_df(start_date):
     """
     Creates a dataframe containing data of the cyclone tracks starting from the forecast file
-    "data/tc_test_track_data.bufr". 
+    "data/tc_track_data_{date of the forecast}.bufr".
+
+    start_date: datetime object
+        Day of the forecast of the data selected by user
     
     Returns:
     df_storms: pandas DataFrame
@@ -72,12 +75,12 @@ def create_storms_df():
     """
     # Load cyclone dataframe with Mean sea level pressure value
     # df_storms = pdbufr.read_bufr('data/tc_test_track_data.bufr',
-    df_storms = pdbufr.read_bufr('data/tc_test_track_data.bufr',
+    df_storms = pdbufr.read_bufr(f"data/tc_track_data_{start_date.strftime('%Y%m%d')}.bufr",
         columns=("stormIdentifier", "longStormName", "ensembleMemberNumber", "year", "month", "day", "hour", "latitude", "longitude",
                  "pressureReducedToMeanSeaLevel"))
     # Load cyclone dataframe with Wind speed at 10m value
     # df1 = pdbufr.read_bufr('data/tc_test_track_data.bufr',
-    df1 = pdbufr.read_bufr('data/tc_test_track_data.bufr',
+    df1 = pdbufr.read_bufr(f"data/tc_track_data_{start_date.strftime('%Y%m%d')}.bufr",
         columns=("stormIdentifier", "longStormName", "ensembleMemberNumber", "latitude", "longitude",
                  "windSpeedAt10M"))
     # Build the dataframe with the timeperiod column
