@@ -180,7 +180,7 @@ def mean_forecast_track(df_storm):
     start = datetime(df_track.iloc[0]['year'], df_track.iloc[0]['month'], df_track.iloc[0]['day'], df_track.iloc[0]['hour'])
     dates = start + timedelta(hours=6) * (df_track.index+1)
     
-    # Cycle through the rows of df_lat_track and df_lon_tracks to compute the average track lat,lon
+    # Cycle through the rows of df_lat_track and df_lon_tracks to compute the average track lat,lon and pressure and wind speed perecentiles
     mean_track_coord = []
     timesteps = []
     pressures = []
@@ -189,13 +189,13 @@ def mean_forecast_track(df_storm):
     for t in range(len(df_lat_tracks)):
         lat = df_lat_tracks.iloc[t].dropna().to_numpy()
         lon = df_lon_tracks.iloc[t].dropna().to_numpy()
-        prs = df_prs_tracks.iloc[t].dropna().to_numpy()
+        prs = df_prs_tracks.iloc[t].dropna().to_numpy()  * 10**-2 # Pa to hPa
         wds = df_wds_tracks.iloc[t].dropna().to_numpy()
         date = dates[t].strftime("%d-%m-%Y %H:%M")
         if len(lat) > 0:
             mean_lat_lon = meanposit(len(lat), lat, lon)
-            pressures.append(prs.mean() * 10**-2) # Pa to hPa
-            winds.append(wds.mean())
+            pressures.append(np.percentile(prs, [10, 25, 50, 75, 90]))
+            winds.append(np.percentile(wds, [10, 25, 50, 75, 90]))
             mean_track_coord.append(mean_lat_lon)
             timesteps.append(date)
         
@@ -564,7 +564,14 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
             location = locations_avg[avg],
             radius=1,
             color="black",
-            popup=widgets.HTML(value=f'<center><b> {timesteps_avg[avg]} </b> <br> Pressure: {pressures_avg[avg]:.2f} hPa <br> Wind speed: {winds_avg[avg]:.2f} m/s</center>')
+            popup=widgets.HTML(value=f"<center><b> {timesteps_avg[avg]} </b> </center>"
+                               f"Percentiles: Pressure || Wind speed <br>"
+                               f"10-th: {pressures_avg[avg][0]:.1f} hPa || {winds_avg[avg][0]:.2f} m/s <br>"
+                               f"25-th: {pressures_avg[avg][1]:.1f} hPa || {winds_avg[avg][1]:.2f} m/s <br>"
+                               f"50-th: {pressures_avg[avg][2]:.1f} hPa || {winds_avg[avg][2]:.2f} m/s <br>"
+                               f"75-th: {pressures_avg[avg][3]:.1f} hPa || {winds_avg[avg][3]:.2f} m/s <br>"
+                               f"90-th: {pressures_avg[avg][4]:.1f} hPa || {winds_avg[avg][4]:.2f} m/s"
+                               )
         )
         marker_avg.append(marker)
     
