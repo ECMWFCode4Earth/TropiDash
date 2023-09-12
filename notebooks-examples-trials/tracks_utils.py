@@ -533,7 +533,7 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
                     location=locs[j],
                     radius=1,
                     color=colours[colour],
-                    popup=widgets.HTML(value=f'<center><b>{tmtstps[j]}</b> <br> Pressure: {press[j]} hPa <br> Wind speed: {wind[j]:.2f} m/s</center>')
+                    popup=widgets.HTML(value=f'<center><b>{tmtstps[j]}</b> <br> Pressure: {press[j]:.2f} hPa <br> Wind speed: {wind[j]:.2f} m/s</center>')
                 )
                 markers.append(marker)
             markers_layer = ipyleaflet.LayerGroup(layers=markers)
@@ -564,7 +564,7 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
             location = locations_avg[avg],
             radius=1,
             color="black",
-            popup=widgets.HTML(value=f'<center><b> {timesteps_avg[avg]} </b> <br> Pressure: {pressures_avg[avg]} hPa <br> Wind speed: {winds_avg[avg]:.2f} m/s</center>')
+            popup=widgets.HTML(value=f'<center><b> {timesteps_avg[avg]} </b> <br> Pressure: {pressures_avg[avg]:.2f} hPa <br> Wind speed: {winds_avg[avg]:.2f} m/s</center>')
         )
         marker_avg.append(marker)
     
