@@ -194,7 +194,7 @@ def mean_forecast_track(df_storm):
         date = dates[t].strftime("%d-%m-%Y %H:%M")
         if len(lat) > 0:
             mean_lat_lon = meanposit(len(lat), lat, lon)
-            pressures.append(prs.mean())
+            pressures.append(prs.mean() * 10**-2) # Pa to hPa
             winds.append(wds.mean())
             mean_track_coord.append(mean_lat_lon)
             timesteps.append(date)
@@ -325,7 +325,7 @@ def storm_df_reorganization(df):
 def strike_probability_map(df_storm_forecast):
     """
     Computes the strike probability map of a cyclone and saves it to raster file
-    "data/pts_raster.tif"
+    "data/tracks/pts_raster.tif"
     
     df_storm_forecast: pandas.DataFrame
         Dataframe containing the cyclone forecast tracks data
@@ -341,6 +341,7 @@ def strike_probability_map(df_storm_forecast):
     df = storm_df_reorganization(df_storm_forecast.copy())
     df.dropna(subset = ['lat', 'lon'], inplace=True)
     df["id"] = df.number
+    forecast_date = min(df.date)
     
     # Set of general parameters for the pts algorithm
     distance = 200.0e3
@@ -461,7 +462,7 @@ def strike_probability_map(df_storm_forecast):
     strike_map = val.reshape((Nj, Ni))
     strike_map_xr = xr.DataArray(strike_map, dims=('latitude', 'longitude'), coords={'latitude': lats, 'longitude': lons})
     
-    tif_path = f"data/pts_raster{storm_code}.tif"
+    tif_path = f"data/tracks/pts_raster_{storm_code}_{forecast_date}.tif"
     strike_map_xr = strike_map_xr.rio.write_crs("epsg:4326")
     strike_map_xr.rio.to_raster(tif_path)
     
