@@ -267,9 +267,9 @@ def observed_track_locations(df_storm_observed):
     locations = []
     for i in range(len(latitude)):
         loc = (latitude[i], longitude[i])
-        date = dates[i][:-3]
+        date = datetime.strptime(dates[i][:-3], ('%Y-%m-%d %H:%M'))
         locations.append(loc)
-        timesteps.append(date)
+        timesteps.append(date.strftime('%d-%m-%Y %H:%M'))
     return locations, timesteps
 
 # Series of function needed to compute the strike probability map
