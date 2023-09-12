@@ -74,12 +74,10 @@ def create_storms_df(start_date):
         Dataframe containing the forecast data for the active cyclones.
     """
     # Load cyclone dataframe with Mean sea level pressure value
-    # df_storms = pdbufr.read_bufr('data/tc_test_track_data.bufr',
     df_storms = pdbufr.read_bufr(f"data/tracks/{start_date.strftime('%Y%m%d')}.bufr",
         columns=("stormIdentifier", "longStormName", "ensembleMemberNumber", "year", "month", "day", "hour", "latitude", "longitude",
                  "pressureReducedToMeanSeaLevel"))
     # Load cyclone dataframe with Wind speed at 10m value
-    # df1 = pdbufr.read_bufr('data/tc_test_track_data.bufr',
     df1 = pdbufr.read_bufr(f"data/tracks/{start_date.strftime('%Y%m%d')}.bufr",
         columns=("stormIdentifier", "longStormName", "ensembleMemberNumber", "latitude", "longitude",
                  "windSpeedAt10M"))
@@ -97,8 +95,8 @@ def create_storms_df(start_date):
     # Add the Wind speed at 10m column adn the timePeriod column to the storms dataframe 
     df_storms["windSpeedAt10M"] = df1.windSpeedAt10M
     df_storms["timePeriod"] = timeperiod
-    # Storms with number higher than 10 are not real storms (according to what Fernando said)
-    drop_condition = df_storms.stormIdentifier < '11'
+    # Storms with stormIdentifier higher than 70 are not real storms
+    drop_condition = df_storms.stormIdentifier < '70'
     df_storms = df_storms[drop_condition]
     return df_storms
 
