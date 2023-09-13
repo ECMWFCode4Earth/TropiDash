@@ -557,7 +557,7 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
             # name='Average Forecast Track',
         )
     
-    # Define the markers element and the circles element for each position of the average track
+    # Define the markers element for each position of the average track
     marker_avg = []
     for avg in range(len(locations_avg)):
         marker = ipyleaflet.CircleMarker(
