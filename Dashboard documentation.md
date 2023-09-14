@@ -9,7 +9,7 @@ Welcome to the User Support Documentation for **TropiDash**, an innovative dashb
 5. Point-Wise Temporal Evolution of Atmospheric Variables
 
 Whether you're a weather enthusiast, a researcher, or a decision-maker, this documentation will guide you through using TropiDash effectively.
-To support you for an effective use of the dashboard please also refer to the tutorials specific for each section in jupyter notebook. You can find them in the __[tutorials folder](https://github.com/ECMWFCode4Earth/TropiDash/tree/main/tutorials)__
+To support you for an effective use of the dashboard please also refer to the tutorials specific for each section in jupyter notebook. You can find them in the __[tutorials folder](https://github.com/ECMWFCode4Earth/TropiDash/tree/main/tutorials)__.
 
 ## Section 1 - Tropical Cyclone Tracks and Characteristics
 
