@@ -5,10 +5,10 @@
 #Necessary packages
 import branca.colormap as bc
 from ipyleaflet import Choropleth, Map, LayersControl, ColormapControl
+from IPython.display import display
 from localtileserver import get_leaflet_tile_layer, TileClient
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-# import numpy as np
 import os
 import pandas as pd
 import rasterio
@@ -492,3 +492,26 @@ def resample_raster(path, fact = 0.5, rio = True, nodata = -3.40282e+38):
         # method with xarray if needed
         # https://docs.xarray.dev/en/stable/generated/xarray.DataArray.coarsen.html
         pass
+
+#%% Joint plot
+
+def impacts_plot(rp_coh, rp_cyh, coord):
+                #Download
+                dwnl_coastalhaz(rp_coh)
+                dwnl_cyclonehaz(rp_cyh)
+                dwnl_riskidx()
+            
+                #Load
+                coh = load_coastalhaz(rp_coh, open = True)
+                cyh = load_cyclonehaz(rp_cyh, open = True)
+            
+                #Plot
+                m = Map(center = coord, zoom = 3)
+                m = plot_coastalhaz(coh, rp_coh, m = m)
+                m = plot_cyclonehaz(cyh, rp_cyh, m = m)
+                m = plot_poplayer(m = m)
+                m = plot_riskidx(["Tsunamis", "Coastal_floods", "Sea_level_rise"], m = m)
+                m.add_control(LayersControl())
+                m.layout.height = "700px"
+            
+                display(m)

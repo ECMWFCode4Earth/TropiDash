@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from ecmwf.opendata import Client
 from ipyleaflet import Map, ColormapControl, LayersControl
 from ipyleaflet.velocity import Velocity
+from IPython.display import display
 from localtileserver import get_leaflet_tile_layer, TileClient
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -19,7 +20,7 @@ import xarray as xr
 
 #%% Download
 
-def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure"):
+def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure", pr = False):
     """
     Function which downloads 1, 2, 5 and 10 days ahead forecasts from today
 
@@ -33,6 +34,8 @@ def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure"):
         the function will download the forecasts from the current day.
     source: str, optional
         Parameter needed for ecmwf.opendata Client class. Can be "azure" or "ecmwf". Default: azure
+    pr: bool, optional
+        If True, prints a message. Default is False
 
     Returns:
     fnames: list of str
@@ -96,18 +99,22 @@ def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure"):
                         request = rqt,
                         target = filename
                     )
-                print(f"Today's forecast not available, downloaded yesterday's forecast: {rqt['date'].strftime('%d/%b/%Y')}")       
+                if pr: print(f"Today's forecast not available, downloaded yesterday's forecast: {rqt['date'].strftime('%d/%b/%Y')}")       
             fnames.append(filename)
     return(fnames)
 
 #%% Load
 
-def load_atmdata(varlst, fnames):
+def load_atmdata(varlst, fnames, pr = False):
     """
+    Loads the downloaded files
+
     varlst: str, list of str
         List containing strings of the variables to load
     fnames: str, list of str
         List containing the paths to downloaded data
+    pr: bool, optional
+        If True, prints the variables which are being loaded. Default is False
     
     Returns:
     vardict: dict
@@ -126,10 +133,10 @@ def load_atmdata(varlst, fnames):
                 nc = nc.assign_attrs(name = filename)
                 lst.append(nc)
         vardict[f"{var}"] = lst
-        print(var, " loaded")
+        if pr: print(var, " loaded")
     return(vardict)
 
-def gen_raster(var, filename, delete = False):
+def gen_raster(var, filename, delete = False, pr = False):
     """
     Generates .tiff raster files from .grib files downloaded from ECMWF's Open Data through dwnl_atmdata
 
@@ -139,6 +146,8 @@ def gen_raster(var, filename, delete = False):
         Path of the .grib file to be converted to .tiff
     delete: bool, optional
         If True, it will delete the original .grib file once the .tiff file is created. Default: False
+    pr: bool, optional
+        If True, prints the variables which are being converted. Default is False
 
     Returns:
     tiffpath: str
@@ -149,7 +158,7 @@ def gen_raster(var, filename, delete = False):
     else:
         tiffpath = ".".join([filename.split(".")[0], "nc"])
     if not os.path.exists(tiffpath):
-        print(var, " conversion")
+        if pr: print(var, " conversion")
         f = xr.load_dataset(filename, engine = "cfgrib")
         if var == "msl":
           f["msl"] = f.msl/1000 #kPa
@@ -176,7 +185,9 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
         Coordinates of the map central point. Provide them as lat, lon
     stepsdict: dict
         Dictionary containing the steps codes needed for each variable. The standard step format is under "base".
-
+    print: bool, optional
+        If True, prints the variables which are being plotted. Default is False
+        
     Returns:
     m: ipyleaflet.Map
     """
@@ -187,6 +198,7 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
         "10fgg15": "10 metre wind gust of at least 15 m/s [%]",
         "wind": "10 metre wind component [m/s]",
     }
+    step = sel_forecast(step)
     m = Map(center = coord, zoom = 3)
     for var in vardict.keys():
         palette = get_palette(var)
@@ -195,7 +207,7 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
         else:
             steps = stepsdict["base"]
         r = [x for x in vardict[var] if f"step{steps[step]}" in x.name][0] #extract the correct raster path
-        print("Plotting ", namedict[var])
+        # if print: print("Plotting ", namedict[var])
         if var != "wind":
             client = TileClient(r)
             t = get_leaflet_tile_layer(client, name = namedict[var], opacity = 0.7, palette = palette)
@@ -229,10 +241,21 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
                                     display_options = display_options,
                                     color_scale = palette)
             m.add_layer(wind_layer)
-        r.close() #close the raster dataset once plotted
+        # r.close() #close the raster dataset once plotted
     m.add_control(LayersControl())
     m.layout.height = "700px"
-    return(m)
+    # return m
+    display(m)
+
+def sel_forecast(sel):
+    tooldict = {
+                    f"24h from selected date": 0,
+                    f"48h from selected date": 1,
+                    f"120h from selected date": 2,
+                    f"240h from selected date": 3
+                }
+    s = tooldict[sel]
+    return(s)
 
 def get_palette(var):
     """
