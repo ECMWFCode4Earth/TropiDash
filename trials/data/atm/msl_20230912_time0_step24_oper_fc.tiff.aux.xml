@@ -1,0 +1,13 @@
+<PAMDataset>
+  <PAMRasterBand band="1">
+    <Description>msl</Description>
+    <Metadata>
+      <MDI key="STATISTICS_APPROXIMATE">YES</MDI>
+      <MDI key="STATISTICS_MAXIMUM">104.59562683105</MDI>
+      <MDI key="STATISTICS_MEAN">100.96308049192</MDI>
+      <MDI key="STATISTICS_MINIMUM">96.25562286377</MDI>
+      <MDI key="STATISTICS_STDDEV">1.2182982426252</MDI>
+      <MDI key="STATISTICS_VALID_PERCENT">100</MDI>
+    </Metadata>
+  </PAMRasterBand>
+</PAMDataset>
