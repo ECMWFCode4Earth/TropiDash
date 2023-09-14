@@ -564,11 +564,11 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
             color="black",
             popup=widgets.HTML(value=f"<center><b>VT: {timesteps_avg[avg]} </b> </center>"
                                f"Percentiles: Pressure || Wind speed <br>"
-                               f"10-th: {pressures_avg[avg][0]:.1f} hPa || {winds_avg[avg][0]:.2f} m/s <br>"
-                               f"25-th: {pressures_avg[avg][1]:.1f} hPa || {winds_avg[avg][1]:.2f} m/s <br>"
-                               f"50-th: {pressures_avg[avg][2]:.1f} hPa || {winds_avg[avg][2]:.2f} m/s <br>"
-                               f"75-th: {pressures_avg[avg][3]:.1f} hPa || {winds_avg[avg][3]:.2f} m/s <br>"
-                               f"90-th: {pressures_avg[avg][4]:.1f} hPa || {winds_avg[avg][4]:.2f} m/s"
+                               f"10<sup>th</sup>: {pressures_avg[avg][0]:.1f} hPa || {winds_avg[avg][0]:.2f} m/s <br>"
+                               f"25<sup>th</sup>: {pressures_avg[avg][1]:.1f} hPa || {winds_avg[avg][1]:.2f} m/s <br>"
+                               f"50<sup>th</sup>: {pressures_avg[avg][2]:.1f} hPa || {winds_avg[avg][2]:.2f} m/s <br>"
+                               f"75<sup>th</sup>: {pressures_avg[avg][3]:.1f} hPa || {winds_avg[avg][3]:.2f} m/s <br>"
+                               f"90<sup>th</sup>: {pressures_avg[avg][4]:.1f} hPa || {winds_avg[avg][4]:.2f} m/s"
                                )
         )
         marker_avg.append(marker)
