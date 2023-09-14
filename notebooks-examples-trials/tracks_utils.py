@@ -234,17 +234,15 @@ def forecast_tracks_locations(df_storm_forecast):
         locs = []
         tmtstps = []
         press = []
-        winds = []
         for i in range(len(latitude)):
             loc = (latitude[i], longitude[i])
             locs.append(loc)
             tmtstps.append(dates[i].strftime("%d-%m-%Y %H:%M"))
             press.append(pressure[i] * 10**-2) # Pa to hPa
-            winds.append(wind_speed[i])
         locations.append(locs)
         timesteps.append(tmtstps)
         pressures.append(press)
-        wind_speeds.append(winds)
+        wind_speeds.append(wind_speed)
     return locations, timesteps, pressures, wind_speeds
 
 def observed_track_locations(df_storm_observed):
