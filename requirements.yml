@@ -18,4 +18,5 @@ dependencies:
   - voila
   - bqplot
   - magics
+  - eccodes
 prefix: /opt/miniconda3/envs/TropiDash
