@@ -499,7 +499,7 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
     # Create the basemap for plotting
     tc_track_map = ipyleaflet.Map(
         center=initial_lat_lon,
-        basemap=ipyleaflet.basemaps.OpenStreetMap.France,
+        basemap=ipyleaflet.basemaps.Esri.WorldTopoMap,
         zoom = 3.0,
         # scroll_wheel_zoom=True,
     )
