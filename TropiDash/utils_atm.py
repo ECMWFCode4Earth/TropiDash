@@ -47,12 +47,12 @@ def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure", pr = F
     else:
         stdate = stdate.strftime('%Y%m%d')
     for var in variables:
-        if var == "10fgg15":
-            steps = stepsdict["10fgg15"]
+        if var == "10fgg25":
+            steps = stepsdict["10fgg25"]
         else:
             steps = stepsdict["base"]
         for s in steps:
-            if var == "10fgg15":
+            if var == "10fgg25":
                 rqt = {
                     "date": stdate, #date start of the forecast
                     "time": 0,      #time start of the forecast, can be 0 or 12
@@ -161,7 +161,9 @@ def gen_raster(var, filename, delete = False, pr = False):
         if pr: print(var, " conversion")
         f = xr.load_dataset(filename, engine = "cfgrib")
         if var == "msl":
-          f["msl"] = f.msl/1000 #kPa
+            f["msl"] = f.msl/1000 #kPa
+        if var == "skt":
+            f["skt"] = f["skt"] - 273.15 #Celsius degrees
         f = f.rio.write_crs("epsg:4326")
         if var != "wind":
             f.rio.to_raster(tiffpath)
@@ -193,17 +195,17 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
     """
     namedict = {
         "msl": "Mean sea level pressure [kPa]",
-        "2t": "2 meter temperature [K]",
+        "skt": "Skin temperature [°C]",
         "tp": "Total Precipitation [m]",
-        "10fgg15": "10 metre wind gust of at least 15 m/s [%]",
+        "10fgg25": "Probability of 10 metre wind gust of at least 25 m/s [%]",
         "wind": "10 metre wind component [m/s]",
     }
     step = sel_forecast(step)
     m = Map(center = coord, zoom = 3)
     for var in vardict.keys():
         palette = get_palette(var)
-        if var == "10fgg15":
-            steps = stepsdict["10fgg15"]
+        if var == "10fgg25":
+            steps = stepsdict["10fgg25"]
         else:
             steps = stepsdict["base"]
         r = [x for x in vardict[var] if f"step{steps[step]}" in x.name][0] #extract the correct raster path
@@ -275,9 +277,9 @@ def get_palette(var):
         return '#{:02x}{:02x}{:02x}'.format(rgb[0], rgb[1], rgb[2])
     palettedict = {
         "msl": [(230, 240, 240),(182, 217, 228),(142, 192, 226),(118, 163, 228),(116, 130, 222),(121, 97, 199),(118, 66, 164),(107, 40, 121),(86, 22, 75),(54,14, 36)],
-        "2t": [(254, 254, 203),(251, 235, 153),(244, 204, 104),(235, 167, 84),(228, 134, 80),(209, 98, 76),(164, 70, 66),(114, 55, 46),(66, 40, 24),(25, 25, 0)],
+        "skt": [(254, 254, 203),(251, 235, 153),(244, 204, 104),(235, 167, 84),(228, 134, 80),(209, 98, 76),(164, 70, 66),(114, 55, 46),(66, 40, 24),(25, 25, 0)],
         "tp": [(255, 255, 229),(217, 235, 213),(180, 216, 197),(142, 197, 181),(105, 177, 165),(67, 158, 149),(44, 135, 127),(29, 110, 100),(14, 85, 74),(0, 60, 48)],
-        "10fgg15": [(255, 255, 229),(217, 235, 213),(180, 216, 197),(142, 197, 181),(105, 177, 165),(67, 158, 149),(44, 135, 127),(29, 110, 100),(14, 85, 74),(0, 60, 48)],
+        "10fgg25": [(254, 252, 205),(235, 219, 144),(210, 192, 83),(170, 171, 32),(121, 154, 5),(70, 136, 22),(24, 114, 39),(13, 88, 44),(24, 61, 36),(23, 35, 18)],
         "wind": [(254, 252, 205),(235, 219, 144),(210, 192, 83),(170, 171, 32),(121, 154, 5),(70, 136, 22),(24, 114, 39),(13, 88, 44),(24, 61, 36),(23, 35, 18)]
     }
     hex = [rgb_to_hex(x) for x in palettedict[var]]

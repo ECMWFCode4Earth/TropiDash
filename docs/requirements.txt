@@ -1,0 +1,24 @@
+birdy
+bqplot
+branca
+cfgrib
+datetime
+ecmwflibs
+ecmwf-opendata
+haversine
+IPython
+ipyleaflet
+ipywidgets
+jupyterlab
+localtileserver @ git+https://github.com/paolchol/localtileserver.git@fix_palettes
+magics
+matplotlib
+numpy
+pandas
+pdbufr
+rasterio
+requests
+rioxarray
+scipy
+voila
+xarray
