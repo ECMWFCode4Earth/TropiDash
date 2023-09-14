@@ -5,7 +5,7 @@ import branca.colormap as bc
 import cfgrib
 from datetime import datetime, timedelta
 from ecmwf.opendata import Client
-from ipyleaflet import Map, ColormapControl, LayersControl
+from ipyleaflet import Map, ColormapControl, LayersControl, basemaps
 from ipyleaflet.velocity import Velocity
 from IPython.display import display
 from localtileserver import get_leaflet_tile_layer, TileClient
@@ -105,7 +105,7 @@ def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure", pr = F
 
 #%% Load
 
-def load_atmdata(varlst, fnames, pr = False):
+def load_atmdata(varlst, fnames, open = False, pr = False):
     """
     Loads the downloaded files
 
@@ -113,13 +113,16 @@ def load_atmdata(varlst, fnames, pr = False):
         List containing strings of the variables to load
     fnames: str, list of str
         List containing the paths to downloaded data
+    open: bool, optional
+        If True, it will open all the files. Default is False
     pr: bool, optional
         If True, prints the variables which are being loaded. Default is False
     
     Returns:
     vardict: dict
         A dictionary of rasterio DatasetReader objects and xarray.Dataset objects,
-        each assigned to the corresponding variable
+        each assigned to the corresponding variable, or a dictionary containing the
+        geenrated files from gen_raster
     """
     vardict = {}
     for i, var in enumerate(varlst):
@@ -127,11 +130,17 @@ def load_atmdata(varlst, fnames, pr = False):
         tool = [x for x in fnames if var in x] #filenames containing the variable
         for filename in tool:
             if var != "wind":
-                lst.append(rasterio.open(gen_raster(var, filename)))
+                if open:
+                    lst.append(rasterio.open(gen_raster(var, filename)))
+                else:
+                    lst.append(gen_raster(var, filename))
             else:
-                nc = xr.open_dataset(gen_raster(var, filename))
-                nc = nc.assign_attrs(name = filename)
-                lst.append(nc)
+                if open:
+                    nc = xr.open_dataset(gen_raster(var, filename))
+                    nc = nc.assign_attrs(name = filename)
+                    lst.append(nc)
+                else:
+                    lst.append(gen_raster(var, filename))
         vardict[f"{var}"] = lst
         if pr: print(var, " loaded")
     return(vardict)
@@ -187,8 +196,6 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
         Coordinates of the map central point. Provide them as lat, lon
     stepsdict: dict
         Dictionary containing the steps codes needed for each variable. The standard step format is under "base".
-    print: bool, optional
-        If True, prints the variables which are being plotted. Default is False
         
     Returns:
     m: ipyleaflet.Map
@@ -201,16 +208,18 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
         "wind": "10 metre wind component [m/s]",
     }
     step = sel_forecast(step)
-    m = Map(center = coord, zoom = 3)
+    m = Map(basemap = basemaps.OpenStreetMap.Mapnik, center = coord, zoom = 3)
     for var in vardict.keys():
         palette = get_palette(var)
         if var == "10fgg25":
             steps = stepsdict["10fgg25"]
         else:
             steps = stepsdict["base"]
-        r = [x for x in vardict[var] if f"step{steps[step]}" in x.name][0] #extract the correct raster path
+        r = [x for x in vardict[var] if f"step{steps[step]}" in x][0] #extract the correct raster path
+        # if open = True in load_atmdata, write x.name
         # if print: print("Plotting ", namedict[var])
         if var != "wind":
+            r = rasterio.open(r)
             client = TileClient(r)
             t = get_leaflet_tile_layer(client, name = namedict[var], opacity = 0.7, palette = palette)
             m.add_layer(t)
@@ -232,6 +241,7 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
                 'displayPosition': 'bottomleft',
                 'displayEmptyString': 'No wind data'
             }
+            r = xr.load_dataset(r)
             wind_layer = Velocity(  name = namedict[var],
                                     data=r,
                                     zonal_speed='u10',
@@ -243,7 +253,7 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
                                     display_options = display_options,
                                     color_scale = palette)
             m.add_layer(wind_layer)
-        # r.close() #close the raster dataset once plotted
+        r.close() #close the raster dataset once plotted
     m.add_control(LayersControl())
     m.layout.height = "700px"
     # return m

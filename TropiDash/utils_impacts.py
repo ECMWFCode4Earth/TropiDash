@@ -6,6 +6,7 @@
 import branca.colormap as bc
 from ipyleaflet import Choropleth, Map, LayersControl, ColormapControl
 from IPython.display import display
+import ipywidgets as widgets
 from localtileserver import get_leaflet_tile_layer, TileClient
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -403,7 +404,7 @@ def plot_riskidx(var, csv = None, addlayer = True, coord = None, m = None):
                 style = {'fillOpacity': 0.75, "color":"black"},
                 key_on = "iso")
         m.add_layer(layer)
-        print(namedict[v], " - ", indexdict[v])
+        # print(namedict[v], " - ", indexdict[v])
         return(m)
     #Plot
     if addlayer:
@@ -504,7 +505,17 @@ def impacts_plot(rp_coh, rp_cyh, coord):
                 #Load
                 coh = load_coastalhaz(rp_coh, open = True)
                 cyh = load_cyclonehaz(rp_cyh, open = True)
-            
+
+                indexdict = {
+                    "Tsunamis": "Normalized Annually Averaged Persons Exposed To Severe Intensity (Coastal Run-Up Height 3.0 m or higher)",
+                    "Coastal_floods": "Normalized Annually Averaged Persons Exposed To Severe Intensity (Inundation Height 1.0 m or higher)",
+                    "Sea_level_rise": "Normalized Persons Potentially Exposed To Projected Sea Level Rise (Inundation Height 1.0 m or below)"
+                }
+                display(widgets.HTML(value = "<b>Legend</b>")) 
+                display(widgets.HTML(value = "Tsunamis: Normalized Annually Averaged Persons Exposed To Severe Intensity (Coastal Run-Up Height 3.0 m or higher)"))
+                display(widgets.HTML(value = "Coastal_floods: Normalized Annually Averaged Persons Exposed To Severe Intensity (Inundation Height 1.0 m or higher)"))
+                display(widgets.HTML(value = "Sea_level_rise: Normalized Persons Potentially Exposed To Projected Sea Level Rise (Inundation Height 1.0 m or below)"))
+
                 #Plot
                 m = Map(center = coord, zoom = 3)
                 m = plot_coastalhaz(coh, rp_coh, m = m)
