@@ -1,5 +1,6 @@
 import numpy as np
 import xarray as xr
+import rioxarray
 
 from eccodes import *
 from datetime import datetime, timedelta
