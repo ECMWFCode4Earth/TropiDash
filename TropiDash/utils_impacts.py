@@ -283,13 +283,13 @@ def plot_poplayer(addlayer = True, coord = None, m = None):
     maxv = "%.2f" % round(r.read(1).ravel().max(), 1)
     if addlayer:
         client = TileClient(r)
-        t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km", opacity = 0.7, palette = "viridis", nodata = r.nodata)
+        t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km (2022)", opacity = 0.7, palette = "viridis", nodata = r.nodata)
     else:
         m = Map(center = coord, zoom = 3)
         client = TileClient(r)
-        t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km", opacity = 0.7, palette = palettehex, nodata = r.nodata)
+        t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km (2022)", opacity = 0.7, palette = palettehex, nodata = r.nodata)
         cmap_control = ColormapControl(
-                                        caption = "Population count - 10km x 10km",
+                                        caption = "Population count - 10km x 10km (2022)",
                                         colormap = bc.StepColormap(palettehex),
                                         value_min = float(minv),
                                         value_max = float(maxv),
