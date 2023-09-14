@@ -499,7 +499,7 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
     # Create the basemap for plotting
     tc_track_map = ipyleaflet.Map(
         center=initial_lat_lon,
-        basemap=ipyleaflet.basemaps.OpenStreetMap.France,
+        basemap=ipyleaflet.basemaps.Esri.WorldTopoMap,
         zoom = 3.0,
         # scroll_wheel_zoom=True,
     )
@@ -531,7 +531,7 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
                     location=locs[j],
                     radius=1,
                     color=colours[colour],
-                    popup=widgets.HTML(value=f'<center><b>{tmtstps[j]}</b> <br> Pressure: {press[j]:.2f} hPa <br> Wind speed: {wind[j]:.2f} m/s</center>')
+                    popup=widgets.HTML(value=f'<center><b>VT: {tmtstps[j]}</b> <br> Pressure: {press[j]:.2f} hPa <br> Wind speed: {wind[j]:.2f} m/s</center>')
                 )
                 markers.append(marker)
             markers_layer = ipyleaflet.LayerGroup(layers=markers)
@@ -562,13 +562,13 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
             location = locations_avg[avg],
             radius=1,
             color="black",
-            popup=widgets.HTML(value=f"<center><b> {timesteps_avg[avg]} </b> </center>"
+            popup=widgets.HTML(value=f"<center><b>VT: {timesteps_avg[avg]} </b> </center>"
                                f"Percentiles: Pressure || Wind speed <br>"
-                               f"10-th: {pressures_avg[avg][0]:.1f} hPa || {winds_avg[avg][0]:.2f} m/s <br>"
-                               f"25-th: {pressures_avg[avg][1]:.1f} hPa || {winds_avg[avg][1]:.2f} m/s <br>"
-                               f"50-th: {pressures_avg[avg][2]:.1f} hPa || {winds_avg[avg][2]:.2f} m/s <br>"
-                               f"75-th: {pressures_avg[avg][3]:.1f} hPa || {winds_avg[avg][3]:.2f} m/s <br>"
-                               f"90-th: {pressures_avg[avg][4]:.1f} hPa || {winds_avg[avg][4]:.2f} m/s"
+                               f"10<sup>th</sup>: {pressures_avg[avg][0]:.1f} hPa || {winds_avg[avg][0]:.2f} m/s <br>"
+                               f"25<sup>th</sup>: {pressures_avg[avg][1]:.1f} hPa || {winds_avg[avg][1]:.2f} m/s <br>"
+                               f"50<sup>th</sup>: {pressures_avg[avg][2]:.1f} hPa || {winds_avg[avg][2]:.2f} m/s <br>"
+                               f"75<sup>th</sup>: {pressures_avg[avg][3]:.1f} hPa || {winds_avg[avg][3]:.2f} m/s <br>"
+                               f"90<sup>th</sup>: {pressures_avg[avg][4]:.1f} hPa || {winds_avg[avg][4]:.2f} m/s"
                                )
         )
         marker_avg.append(marker)
@@ -588,7 +588,7 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
             location = locations_o[o],
             radius=1,
             color="#ff00ff",
-            popup=widgets.HTML(value=f'<b> {timesteps_o[o]} </b>')
+            popup=widgets.HTML(value=f'<b>VT: {timesteps_o[o]} </b>')
         )
         marker_o.append(marker)
         
