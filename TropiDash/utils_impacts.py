@@ -256,7 +256,7 @@ def load_poplayer():
     Returns:
     r: rasterio.DatasetReader object
     """
-    path = "data/impacts/ppp_2020_1km_Aggregated_resampled_10km_sum_clipped_3402na.tif"
+    path = "data/impacts/ppp_2020_1km_Aggregated_resampled_10km_sum_clipped_3402na_fix.tif"
     r = rasterio.open(path)
     return(r)
 
@@ -283,7 +283,17 @@ def plot_poplayer(addlayer = True, coord = None, m = None):
     maxv = "%.2f" % round(r.read(1).ravel().max(), 1)
     if addlayer:
         client = TileClient(r)
-        t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km (2022)", opacity = 0.7, palette = "viridis", nodata = r.nodata)
+        t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km (2022)", opacity = 0.7, palette = palettehex, nodata = r.nodata)
+        cmap_control = ColormapControl(
+                                        caption = "Population count - 10km x 10km (2022)",
+                                        colormap = bc.StepColormap(palettehex),
+                                        value_min = float(minv),
+                                        value_max = float(maxv),
+                                        position = 'topright',
+                                        transparent_bg = True
+                                        )
+        m.add(cmap_control)
+        m.add_layer(t)
     else:
         m = Map(center = coord, zoom = 3)
         client = TileClient(r)
@@ -403,6 +413,15 @@ def plot_riskidx(var, csv = None, addlayer = True, coord = None, m = None):
                 name = namedict[v],
                 style = {'fillOpacity': 0.75, "color":"black"},
                 key_on = "iso")
+        # cmap_control = ColormapControl(
+        #                                 caption = "Population count - 10km x 10km (2022)",
+        #                                 colormap = bc.StepColormap(palettehex),
+        #                                 value_min = float(minv),
+        #                                 value_max = float(maxv),
+        #                                 position = 'topright',
+        #                                 transparent_bg = True
+        #                                 )
+        # m.add(cmap_control)
         m.add_layer(layer)
         # print(namedict[v], " - ", indexdict[v])
         return(m)
