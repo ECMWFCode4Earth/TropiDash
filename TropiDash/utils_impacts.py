@@ -4,7 +4,7 @@
 
 #Necessary packages
 import branca.colormap as bc
-from ipyleaflet import Choropleth, Map, LayersControl, ColormapControl
+from ipyleaflet import Choropleth, Map, LayersControl, ColormapControl, basemaps
 from IPython.display import display
 import ipywidgets as widgets
 from localtileserver import get_leaflet_tile_layer, TileClient
@@ -276,7 +276,7 @@ def plot_poplayer(addlayer = True, coord = None, m = None):
     Returns:
     m: ipyleaflet.Map
     """
-    palette = [(0, 25, 89),(14, 54, 94),(28, 84, 96),(62, 108, 84),(104, 122, 61),(154, 136, 45),(212, 148, 71),(249, 163, 129),(253, 182, 188),(250, 204, 250)]
+    palette =     [(255, 255, 229),(217, 235, 213),(180, 216, 197),(142, 197, 181),(105, 177, 165),(67, 158, 149),(44, 135, 127),(29, 110, 100),(14, 85, 74),(0, 60, 48)]
     palettehex = [rgb_to_hex(x) for x in palette]
     r = load_poplayer()
     minv = "%.2f" % round(r.read(1).ravel().min(), 1)
@@ -536,12 +536,13 @@ def impacts_plot(rp_coh, rp_cyh, coord):
                 display(widgets.HTML(value = "Sea_level_rise: Normalized Persons Potentially Exposed To Projected Sea Level Rise (Inundation Height 1.0 m or below)"))
 
                 #Plot
-                m = Map(center = coord, zoom = 3)
-                m = plot_coastalhaz(coh, rp_coh, m = m)
-                m = plot_cyclonehaz(cyh, rp_cyh, m = m)
-                m = plot_poplayer(m = m)
-                m = plot_riskidx(["Tsunamis", "Coastal_floods", "Sea_level_rise"], m = m)
-                m.add_control(LayersControl())
-                m.layout.height = "700px"
+                m = Map(basemap = basemaps.Esri.WorldTopoMap, center = coord, zoom = 3)
+                # m = plot_coastalhaz(coh, rp_coh, m = m)
+                # m = plot_cyclonehaz(cyh, rp_cyh, m = m)
+                # m = plot_poplayer(m = m)
+                # m = plot_riskidx(["Tsunamis", "Coastal_floods", "Sea_level_rise"], m = m)
+                # m.add_control(LayersControl())
+                # m.layout.height = "700px"
             
-                display(m)
+                # display(m)
+                return m
