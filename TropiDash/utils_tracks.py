@@ -50,6 +50,7 @@ def download_tracks_forecast(start_date):
             return start_date
         # Usually early in the morning the forecast of the current day is not available
         except:
+            os.remove(f"data/tracks/{start_date.strftime('%Y%m%d')}.bufr")
             start_date = start_date - timedelta(days=1)
             client.retrieve(
                 date=int(start_date.strftime("%Y%m%d")),
