@@ -254,16 +254,20 @@ def plot_cyclonehaz(cyh, rp, addlayer = True, coord = None, m = None):
 
 #%% Population functions
 
-def load_poplayer():
+def load_poplayer(path = None):
     """
     Loads the population raster with 10 km spatial resolution saved in data/impacts folder
     The raster file was downloaded from https://hub.worldpop.org/geodata/summary?id=24777 with 1 km resolution
     Then, it was resampled to 10 km resolution through QGIS
     
+    path: str, optional
+        Path to the population raster file. Default is None
+
     Returns:
     r: rasterio.DatasetReader object
     """
-    path = "data/impacts/ppp_2020_1km_Aggregated_resampled_10km_sum_clipped_3402na_fix.tif"
+    if path is None:
+        path = "data/impacts/ppp_2020_1km_Aggregated_resampled_10km_sum_clipped_3402na_fix.tif"
     r = rasterio.open(path)
     return(r)
 
@@ -283,11 +287,11 @@ def plot_poplayer(addlayer = True, coord = None, m = None):
     Returns:
     m: ipyleaflet.Map
     """
-    palette =     [(255, 255, 229),(217, 235, 213),(180, 216, 197),(142, 197, 181),(105, 177, 165),(67, 158, 149),(44, 135, 127),(29, 110, 100),(14, 85, 74),(0, 60, 48)]
+    palette = [(255, 255, 229),(217, 235, 213),(180, 216, 197),(142, 197, 181),(105, 177, 165),(67, 158, 149),(44, 135, 127),(29, 110, 100),(14, 85, 74),(0, 60, 48)]
     palettehex = [rgb_to_hex(x) for x in palette]
     r = load_poplayer()
     minv = "%.2f" % round(r.read(1).ravel().min(), 1)
-    maxv = "%.2f" % round(r.read(1).ravel().max(), 1)
+    maxv = "%.2f" % round(r.read(1).ravel()[r.read(1).ravel()<r.nodata].max(), 1)
     if addlayer:
         client = TileClient(r)
         t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km (2020)", opacity = 0.7, palette = palettehex, nodata = r.nodata)
@@ -398,18 +402,13 @@ def plot_riskidx(var, csv = None, addlayer = True, coord = None, m = None):
             "Coastal_floods": "Coastal floods Exposition Index - 2022",
             "Sea_level_rise": "Sea level rise Exposition Index - 2022"
         }
-        #Index explanation to be printed
-        indexdict = {
-            "Tsunamis": "Normalized Annually Averaged Persons Exposed To Severe Intensity (Coastal Run-Up Height 3.0 m or higher)",
-            "Coastal_floods": "Normalized Annually Averaged Persons Exposed To Severe Intensity (Inundation Height 1.0 m or higher)",
-            "Sea_level_rise": "Normalized Persons Potentially Exposed To Projected Sea Level Rise (Inundation Height 1.0 m or below)"
-        }
         #Palettes to be used
         palettedict = {
-            "Tsunamis": "",
-            "Coastal_floods": "",
-            "Sea_level_rise": ""
+            "Tsunamis": [(254, 254, 203),(251, 235, 153),(244, 204, 104),(235, 167, 84),(228, 134, 80),(209, 98, 76),(164, 70, 66),(114, 55, 46),(66, 40, 24),(25, 25, 0)],
+            "Coastal_floods": [(254, 254, 203),(251, 235, 153),(244, 204, 104),(235, 167, 84),(228, 134, 80),(209, 98, 76),(164, 70, 66),(114, 55, 46),(66, 40, 24),(25, 25, 0)],
+            "Sea_level_rise": [(254, 254, 203),(251, 235, 153),(244, 204, 104),(235, 167, 84),(228, 134, 80),(209, 98, 76),(164, 70, 66),(114, 55, 46),(66, 40, 24),(25, 25, 0)]
         }
+        palettehex = [rgb_to_hex(x) for x in palettedict[v]]
         mapping = dict(zip(csv["ISO3"].str.strip(), csv[v]))
         for d in geo_json_data["features"]:
             if d["iso"] not in mapping:
@@ -419,18 +418,18 @@ def plot_riskidx(var, csv = None, addlayer = True, coord = None, m = None):
                 choro_data = mapping,
                 name = namedict[v],
                 style = {'fillOpacity': 0.75, "color":"black"},
-                key_on = "iso")
-        # cmap_control = ColormapControl(
-        #                                 caption = "Population count - 10km x 10km (2022)",
-        #                                 colormap = bc.StepColormap(palettehex),
-        #                                 value_min = float(minv),
-        #                                 value_max = float(maxv),
-        #                                 position = 'topright',
-        #                                 transparent_bg = True
-        #                                 )
-        # m.add(cmap_control)
+                key_on = "iso",
+                )
+        cmap_control = ColormapControl(
+                                        caption = namedict[v],
+                                        colormap = bc.StepColormap(palettehex),
+                                        value_min = float(min(mapping)),
+                                        value_max = float(max(mapping)),
+                                        position = 'topright',
+                                        transparent_bg = True
+                                        )
+        m.add(cmap_control)
         m.add_layer(layer)
-        # print(namedict[v], " - ", indexdict[v])
         return(m)
     #Plot
     if addlayer:
@@ -548,15 +547,10 @@ def impacts_plot(rp_coh, rp_cyh, coord):
     coh = load_coastalhaz(rp_coh, open = True)
     cyh = load_cyclonehaz(rp_cyh, open = True)
 
-    indexdict = {
-        "Tsunamis": "Normalized Annually Averaged Persons Exposed To Severe Intensity (Coastal Run-Up Height 3.0 m or higher)",
-        "Coastal_floods": "Normalized Annually Averaged Persons Exposed To Severe Intensity (Inundation Height 1.0 m or higher)",
-        "Sea_level_rise": "Normalized Persons Potentially Exposed To Projected Sea Level Rise (Inundation Height 1.0 m or below)"
-    }
     display(widgets.HTML(value = "<b>Legend</b>")) 
     display(widgets.HTML(value = "Tsunamis: Normalized Annually Averaged Persons Exposed To Severe Intensity (Coastal Run-Up Height 3.0 m or higher)"))
-    display(widgets.HTML(value = "Coastal_floods: Normalized Annually Averaged Persons Exposed To Severe Intensity (Inundation Height 1.0 m or higher)"))
-    display(widgets.HTML(value = "Sea_level_rise: Normalized Persons Potentially Exposed To Projected Sea Level Rise (Inundation Height 1.0 m or below)"))
+    display(widgets.HTML(value = "Coastal floods: Normalized Annually Averaged Persons Exposed To Severe Intensity (Inundation Height 1.0 m or higher)"))
+    display(widgets.HTML(value = "Sea level rise: Normalized Persons Potentially Exposed To Projected Sea Level Rise (Inundation Height 1.0 m or below)"))
 
     #Create the plot
     m = Map(basemap = basemaps.Esri.WorldTopoMap, center = coord, zoom = 3)
