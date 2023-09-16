@@ -20,6 +20,12 @@ import json
 # %% General functions
 
 def rgb_to_hex(rgb):
+    """
+    Returns the HEX code of the RGB tuple provided
+
+    rgb: tuple of int
+        rgb[0]: red, rgb[1]: green, rgb[2]: blue
+    """
     return '#{:02x}{:02x}{:02x}'.format(rgb[0], rgb[1], rgb[2])
 
 def get_colorlist(cmap, n_col = 10):
@@ -67,8 +73,7 @@ def dwnl_coastalhaz(rp):
         tif = requests.get(links[rp])
         with open(filename, "wb") as tiffile:
                 tiffile.write(tif.content)
-                #need to compress the tif file when downloading it
-                print("Coastal hazard data - Download complete")
+                # print("Coastal hazard data - Download complete")
 
 def load_coastalhaz(rp, resample = False, open = True):
     """
@@ -171,7 +176,7 @@ def dwnl_cyclonehaz(rp):
         tif = requests.get(links[rp])
         with open(filename, "wb") as tiffile:
                 tiffile.write(tif.content)
-                print("Cyclone hazard download complete")
+                # print("Cyclone hazard download complete")
 
 def load_cyclonehaz(rp, open = True):
     """
@@ -251,7 +256,9 @@ def plot_cyclonehaz(cyh, rp, addlayer = True, coord = None, m = None):
 
 def load_poplayer():
     """
-    Loads the population layer with 10 km spatial resolution saved in data/impacts folder
+    Loads the population raster with 10 km spatial resolution saved in data/impacts folder
+    The raster file was downloaded from https://hub.worldpop.org/geodata/summary?id=24777 with 1 km resolution
+    Then, it was resampled to 10 km resolution through QGIS
     
     Returns:
     r: rasterio.DatasetReader object
@@ -283,9 +290,9 @@ def plot_poplayer(addlayer = True, coord = None, m = None):
     maxv = "%.2f" % round(r.read(1).ravel().max(), 1)
     if addlayer:
         client = TileClient(r)
-        t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km (2022)", opacity = 0.7, palette = palettehex, nodata = r.nodata)
+        t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km (2020)", opacity = 0.7, palette = palettehex, nodata = r.nodata)
         cmap_control = ColormapControl(
-                                        caption = "Population count - 10km x 10km (2022)",
+                                        caption = "Population count - 10km x 10km (2020)",
                                         colormap = bc.StepColormap(palettehex),
                                         value_min = float(minv),
                                         value_max = float(maxv),
@@ -297,9 +304,9 @@ def plot_poplayer(addlayer = True, coord = None, m = None):
     else:
         m = Map(center = coord, zoom = 3)
         client = TileClient(r)
-        t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km (2022)", opacity = 0.7, palette = palettehex, nodata = r.nodata)
+        t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km (2020)", opacity = 0.7, palette = palettehex, nodata = r.nodata)
         cmap_control = ColormapControl(
-                                        caption = "Population count - 10km x 10km (2022)",
+                                        caption = "Population count - 10km x 10km (2020)",
                                         colormap = bc.StepColormap(palettehex),
                                         value_min = float(minv),
                                         value_max = float(maxv),
@@ -317,7 +324,7 @@ def plot_poplayer(addlayer = True, coord = None, m = None):
 
 def dwnl_riskidx():
     """
-    Downloads the World Risk Index for 2022
+    Downloads the World Risk Index data for 2022
 
     Data source: https://data.humdata.org/dataset/1efb6ee7-051a-440f-a2cf-e652fecccf73
     """
@@ -516,33 +523,49 @@ def resample_raster(path, fact = 0.5, rio = True, nodata = -3.40282e+38):
 #%% Joint plot
 
 def impacts_plot(rp_coh, rp_cyh, coord):
-                #Download
-                dwnl_coastalhaz(rp_coh)
-                dwnl_cyclonehaz(rp_cyh)
-                dwnl_riskidx()
-            
-                #Load
-                coh = load_coastalhaz(rp_coh, open = True)
-                cyh = load_cyclonehaz(rp_cyh, open = True)
+    """
+    Displays Section 3 interactive plot by creating an ipyleaflet.Map object 
+    and adding a layer for each impact variable
 
-                indexdict = {
-                    "Tsunamis": "Normalized Annually Averaged Persons Exposed To Severe Intensity (Coastal Run-Up Height 3.0 m or higher)",
-                    "Coastal_floods": "Normalized Annually Averaged Persons Exposed To Severe Intensity (Inundation Height 1.0 m or higher)",
-                    "Sea_level_rise": "Normalized Persons Potentially Exposed To Projected Sea Level Rise (Inundation Height 1.0 m or below)"
-                }
-                display(widgets.HTML(value = "<b>Legend</b>")) 
-                display(widgets.HTML(value = "Tsunamis: Normalized Annually Averaged Persons Exposed To Severe Intensity (Coastal Run-Up Height 3.0 m or higher)"))
-                display(widgets.HTML(value = "Coastal_floods: Normalized Annually Averaged Persons Exposed To Severe Intensity (Inundation Height 1.0 m or higher)"))
-                display(widgets.HTML(value = "Sea_level_rise: Normalized Persons Potentially Exposed To Projected Sea Level Rise (Inundation Height 1.0 m or below)"))
+    rp_coh: str
+        Return period associated to Coastal hazard. Can be one of the following: 5yr, 10yr, 50yr, 100yr, 250yr, 500yr, 1000yr.
+        Provided by a widget in TropiDash_backcone
+    rp_cyh: str
+        Return period associated to Cyclone hazard. Can be one of the following: 50yr, 100yr, 250yr, 500yr, 1000yr.
+        Provided by a widget in TropiDash_backcone
+    coord: tuple of float
+        Coordinates where to center the ipyleaflet.Map
 
-                #Plot
-                m = Map(basemap = basemaps.Esri.WorldTopoMap, center = coord, zoom = 3)
-                m = plot_coastalhaz(coh, rp_coh, m = m)
-                m = plot_cyclonehaz(cyh, rp_cyh, m = m)
-                m = plot_poplayer(m = m)
-                m = plot_riskidx(["Tsunamis", "Coastal_floods", "Sea_level_rise"], m = m)
-                m.add_control(LayersControl())
-                m.layout.height = "700px"
-            
-                display(m)
-                # return m
+    Returns:
+    None
+    """
+    #Download
+    dwnl_coastalhaz(rp_coh)
+    dwnl_cyclonehaz(rp_cyh)
+    dwnl_riskidx()
+
+    #Load
+    coh = load_coastalhaz(rp_coh, open = True)
+    cyh = load_cyclonehaz(rp_cyh, open = True)
+
+    indexdict = {
+        "Tsunamis": "Normalized Annually Averaged Persons Exposed To Severe Intensity (Coastal Run-Up Height 3.0 m or higher)",
+        "Coastal_floods": "Normalized Annually Averaged Persons Exposed To Severe Intensity (Inundation Height 1.0 m or higher)",
+        "Sea_level_rise": "Normalized Persons Potentially Exposed To Projected Sea Level Rise (Inundation Height 1.0 m or below)"
+    }
+    display(widgets.HTML(value = "<b>Legend</b>")) 
+    display(widgets.HTML(value = "Tsunamis: Normalized Annually Averaged Persons Exposed To Severe Intensity (Coastal Run-Up Height 3.0 m or higher)"))
+    display(widgets.HTML(value = "Coastal_floods: Normalized Annually Averaged Persons Exposed To Severe Intensity (Inundation Height 1.0 m or higher)"))
+    display(widgets.HTML(value = "Sea_level_rise: Normalized Persons Potentially Exposed To Projected Sea Level Rise (Inundation Height 1.0 m or below)"))
+
+    #Create the plot
+    m = Map(basemap = basemaps.Esri.WorldTopoMap, center = coord, zoom = 3)
+    m = plot_coastalhaz(coh, rp_coh, m = m)
+    m = plot_cyclonehaz(cyh, rp_cyh, m = m)
+    m = plot_poplayer(m = m)
+    m = plot_riskidx(["Tsunamis", "Coastal_floods", "Sea_level_rise"], m = m)
+    m.add_control(LayersControl())
+    m.layout.height = "700px"
+
+    #Show the plot
+    display(m)
