@@ -207,15 +207,12 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
         "10fgg25": "Probability of 10 metre wind gust of at least 25 m/s [%]",
         "wind": "10 metre wind component [m/s]",
     }
-    step = sel_forecast(step)
-    m = Map(basemap = basemaps.OpenStreetMap.Mapnik, center = coord, zoom = 3)
+    
+    m = Map(basemap = basemaps.Esri.WorldTopoMap, center = coord, zoom = 3)
     for var in vardict.keys():
         palette = get_palette(var)
-        if var == "10fgg25":
-            steps = stepsdict["10fgg25"]
-        else:
-            steps = stepsdict["base"]
-        r = [x for x in vardict[var] if f"step{steps[step]}" in x][0] #extract the correct raster path
+        s = sel_forecast(var, step, stepsdict)
+        r = [x for x in vardict[var] if f"step{s}" in x][0] #extract the correct raster path
         # if open = True in load_atmdata, write x.name
         # if print: print("Plotting ", namedict[var])
         if var != "wind":
@@ -259,15 +256,15 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
     # return m
     display(m)
 
-def sel_forecast(sel):
-    tooldict = {
-                    f"24h from selected date": 0,
-                    f"48h from selected date": 1,
-                    f"120h from selected date": 2,
-                    f"240h from selected date": 3
-                }
-    s = tooldict[sel]
-    return(s)
+def sel_forecast(var, step, stepsdict):
+    if var == "10fgg25":
+        steps = stepsdict["10fgg25"]
+    else:
+        steps = stepsdict["base"]
+    tooldict = dict(zip([f"{i}h from selected date" for i in stepsdict["base"]], [i for i in range(len(stepsdict["base"]))]))
+    s = tooldict[step]
+    out = steps[s]
+    return(out)
 
 def get_palette(var):
     """
