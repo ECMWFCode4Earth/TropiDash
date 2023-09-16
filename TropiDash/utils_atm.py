@@ -208,7 +208,7 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
         "wind": "10 metre wind component [m/s]",
     }
     step = sel_forecast(step)
-    m = Map(basemap = basemaps.Esri.WorldTopoMap, center = coord, zoom = 3)
+    m = Map(basemap = basemaps.OpenStreetMap.Mapnik, center = coord, zoom = 3)
     for var in vardict.keys():
         palette = get_palette(var)
         if var == "10fgg25":
@@ -261,10 +261,10 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
 
 def sel_forecast(sel):
     tooldict = {
-                    "24h from selected date": 0,
-                    "48h from selected date": 1,
-                    "120h from selected date": 2,
-                    "240h from selected date": 3
+                    f"24h from selected date": 0,
+                    f"48h from selected date": 1,
+                    f"120h from selected date": 2,
+                    f"240h from selected date": 3
                 }
     s = tooldict[sel]
     return(s)
