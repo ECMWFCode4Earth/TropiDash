@@ -187,18 +187,20 @@ def gen_raster(var, filename, delete = False, pr = False):
 
 def plot_atmdata_step(vardict, step, coord, stepsdict):
     """
+    Plots the atmospheric variables for a specified forecast step
+
     vardict: dict
         Dictionary containing the rasters uploaded trhough load_atmdata.
         Returned by load_atmdata
-    step: int
-        Index of the desired step inside the list defined in stepsdict
+    step: str
+        String returned from the widget used to select the forecast period
     coord: tuple
         Coordinates of the map central point. Provide them as lat, lon
     stepsdict: dict
         Dictionary containing the steps codes needed for each variable. The standard step format is under "base".
         
     Returns:
-    m: ipyleaflet.Map
+    None
     """
     namedict = {
         "msl": "Mean sea level pressure [kPa]",
@@ -207,14 +209,11 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
         "10fgg25": "Probability of 10 metre wind gust of at least 25 m/s [%]",
         "wind": "10 metre wind component [m/s]",
     }
-    
     m = Map(basemap = basemaps.Esri.WorldTopoMap, center = coord, zoom = 3)
     for var in vardict.keys():
         palette = get_palette(var)
         s = sel_forecast(var, step, stepsdict)
         r = [x for x in vardict[var] if f"step{s}" in x][0] #extract the correct raster path
-        # if open = True in load_atmdata, write x.name
-        # if print: print("Plotting ", namedict[var])
         if var != "wind":
             r = rasterio.open(r)
             client = TileClient(r)
@@ -253,10 +252,23 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
         r.close() #close the raster dataset once plotted
     m.add_control(LayersControl())
     m.layout.height = "700px"
-    # return m
     display(m)
 
 def sel_forecast(var, step, stepsdict):
+    """
+    Returns the step used to compose the filename of the specified variable
+
+    var: str
+        Name of the variable which is being plotted
+    step: str
+        String returned from the widget used to select the forecast period
+    stepsdict: dict
+        Dictionary containing the steps codes needed for each variable. The standard step format is under "base".
+    
+    Returns:
+    out: int or str
+        Forecast step. Used to compose the filename of the variable to be read
+    """
     if var == "10fgg25":
         steps = stepsdict["10fgg25"]
     else:
