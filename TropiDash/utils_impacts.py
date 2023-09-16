@@ -419,16 +419,17 @@ def plot_riskidx(var, csv = None, addlayer = True, coord = None, m = None):
                 name = namedict[v],
                 style = {'fillOpacity': 0.75, "color":"black"},
                 key_on = "iso",
+                #add palettehex
                 )
-        cmap_control = ColormapControl(
-                                        caption = namedict[v],
-                                        colormap = bc.StepColormap(palettehex),
-                                        value_min = float(min(mapping)),
-                                        value_max = float(max(mapping)),
-                                        position = 'topright',
-                                        transparent_bg = True
-                                        )
-        m.add(cmap_control)
+        # cmap_control = ColormapControl(
+        #                                 caption = namedict[v],
+        #                                 colormap = bc.StepColormap(palettehex),
+        #                                 value_min = float(min(mapping)),
+        #                                 value_max = float(max(mapping)),
+        #                                 position = 'topright',
+        #                                 transparent_bg = True
+        #                                 )
+        # m.add(cmap_control)
         m.add_layer(layer)
         return(m)
     #Plot
