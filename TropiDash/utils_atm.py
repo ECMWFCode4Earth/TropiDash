@@ -173,9 +173,9 @@ def gen_raster(var, filename, delete = False, pr = False):
             f["msl"] = f.msl/1000 #kPa
         if var == "skt":
             f["skt"] = f["skt"] - 273.15 #Celsius degrees
-        # f = f.rio.write_crs("epsg:4326")
-        f = f.rio.write_crs("epsg:3857") #to test fixing error from get_leaflet_tilelayer
+        f = f.rio.write_crs("epsg:4326")
         if var != "wind":
+            f = f.rio.reproject("epsg:3857") #to avoid errors when creating layers with get_leaflet_tile_layer
             f.rio.to_raster(tiffpath)
         else:
             f.to_netcdf(tiffpath)
@@ -233,6 +233,7 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
                                             )
             m.add(cmap_control)
         else:
+            pass
             display_options = {
                 'velocityType': 'Global Wind',
                 'displayPosition': 'bottomleft',
