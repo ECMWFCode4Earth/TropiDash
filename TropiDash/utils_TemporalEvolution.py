@@ -74,12 +74,11 @@ def get_allvars_allpoints(date_to_download, steps_to_download, steps_to_download
     out = {}
     for var in ['tp', 'msl', 'skt', '10fgg25']:
         if var == "10fgg25":
-            steps_to_download = ["0-24", "24-48", "96-120", "216-240"]
+            list_steps_to_download = steps_to_download2
         else: 
-            steps_to_download = [24, 48, 120, 240]
+            list_steps_to_download = steps_to_download
         df_temp = {}
-        for step in steps_to_download:
-            
+        for step in list_steps_to_download:
             if var == "10fgg25":
                 rqt = {
                     "date": date_to_download, #date start of the forecast
@@ -102,7 +101,6 @@ def get_allvars_allpoints(date_to_download, steps_to_download, steps_to_download
                 }
    
             filename = f"data/atm/{var}_{rqt['date']}_time{rqt['time']}_step{rqt['step']}_{rqt['stream']}_{rqt['type']}.grib"     
-            #filename = 'data/' + var + '_' + str(date_to_download) + str(step)+'.grib'
             ds = xr.open_dataset(filename, engine="cfgrib")
 
             df = ds.to_dataframe()
@@ -117,6 +115,8 @@ def get_allvars_allpoints(date_to_download, steps_to_download, steps_to_download
             df_datapoints = pd.DataFrame({'Lat': lats, 'Lon':lons, 'Value': vals})
             df_datapoints['point'] = [(x, y) for x,y in zip(df_datapoints['Lat'], df_datapoints['Lon'])]
             df_temp[str(step)] = df_datapoints
+            ds.close() #close the raster dataset once plotted
+
         df_datapoints =  pd.concat(df_temp, axis = 0)
         out[var] = df_datapoints
     return(out)
@@ -137,7 +137,8 @@ def get_df_pos(data_allpoints, pos, steps_to_download):
     for var in ['tp', 'msl', 'skt', '10fgg25']:
 
         df_datapoints = data_allpoints[var]
-        
+       # if var == 'skt:
+            
         df_selpoint = pd.DataFrame({'Lat': pd.Series(pos[0]), 'Lon':pd.Series(pos[1])})
         df_selpoint['point'] = [(x, y) for x,y in zip(df_selpoint['Lat'], df_selpoint['Lon'])]
         
