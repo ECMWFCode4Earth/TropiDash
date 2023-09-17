@@ -173,7 +173,8 @@ def gen_raster(var, filename, delete = False, pr = False):
             f["msl"] = f.msl/1000 #kPa
         if var == "skt":
             f["skt"] = f["skt"] - 273.15 #Celsius degrees
-        f = f.rio.write_crs("epsg:4326")
+        # f = f.rio.write_crs("epsg:4326")
+        f = f.rio.write_crs("epsg:3857") #to test fixing error from get_leaflet_tilelayer
         if var != "wind":
             f.rio.to_raster(tiffpath)
         else:
