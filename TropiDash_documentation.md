@@ -33,7 +33,7 @@ It is important to acknowledge that within TropiDash, users may encounter a temp
 Considering the information available from the presented dataset, we organize the dashboard section to display the following layers over a geographical map:
 1. *Ensemble forecast tracks*: this layer groups all the ensemble members of the forecast track for the selected cyclone. Suppose the user plots five or fewer ensemble members for each forecasted position. In that case, clicking on the location displays the predicted mean sea level pressure at the hurricane's center and the maximum sustained wind speed. With six or more ensemble members selected, this option is not available anymore because it makes the coding process heavier. 
 2. *Average forecast track*: this layer displays the mean forecast track computed considering all the 52 ensemble members included in the forecast. Clicking on the mean locations, the user can also visualize the 10<sup>th</sup>, 25<sup>th</sup>, 50<sup>th</sup>, 75<sup>th</sup>, and 90<sup>th</sup> percentiles for mean sea level pressure and maximum sustained wind speed of the ensemble forecasted tracks. 
-3. *Bbserved track*: this layer displays the observed track of the cyclone. 
+3. *Observed track*: this layer displays the observed track of the cyclone. 
 4. *Strike probability map*: this layer displays the map of the strike probability of the cyclone. The strike probability is the probability that a tropical cyclone will pass within a 300 km radius of a given location and within a time window of 48 hours. It quickly assesses high-risk areas, although with some uncertainty in the exact timing or position. Please find more information regarding the strike probability __[here](https://charts.ecmwf.int/products/medium-tc-genesis?base_time=202309140000&layer_name=genesis_ts&projection=opencharts_global&valid_time=202309170000)__.
 
 ### Functions
@@ -56,3 +56,11 @@ proposed: List used functions/link to the utils file
 
 ### Functions
 
+## Section 5 - Point-Wise Temporal Evolution of Atmospheric Variable
+### Data sources
+
+Data source is the open dataset provided by the European Centre of Medium-Range Weather Forecasts (ECMWF), accessed with the Azure client through the ecmwf.opendata library. You can find more information regarding the open-data __[here](https://www.ecmwf.int/en/forecasts/datasets/open-data)__ The variables displayed in this section are: accumulated precipitation, mean sea level pressure, skin temperature, probability of wind gust of more than 25m/s at 10m. The available temporal resolution on the open-data site is of 6h for prec, msl and skt while for wg25 there is one timestep every 24h. In the present dashboard, data is displayed with a temporal resolution of 24h for wg25 and 12h for the other variables to not make the dashboard too slow computationally. 
+
+### Plot
+
+### Functions
