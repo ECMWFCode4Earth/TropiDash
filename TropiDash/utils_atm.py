@@ -216,7 +216,7 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
         r = [x for x in vardict[var] if f"step{s}" in x][0] #extract the correct raster path
         if var != "wind":
             client = TileClient(r)
-            t = get_leaflet_tile_layer(client, name = namedict[var], opacity = 0.7, palette = palette)
+            t = get_leaflet_tile_layer(client, name = namedict[var], opacity = 0.7, palette = palette, max_zoom = 30)
             m.add_layer(t)
             with rasterio.open(r) as raster:
                 minv = "%.2f" % round(raster.read(1).ravel().min(), 1)

@@ -596,7 +596,7 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
     # Define raster layer for strike probability map and its colormap widget
     # palette = ["#c4ff70", "#6ae24c", "#2a9134", "#137547", "#046335", "#2397d1", "#557ff3", "#143cdc", "#3910b4", "#1e0063"]
     palette = ["#8df52c", "#6ae24c", "#61bb30", "#508b15", "#057941", "#2397d1", "#557ff3", "#143cdc", "#3910b4", "#1e0063"]
-    stp_map = get_leaflet_tile_layer(client, name = "Strike Probability Map", opacity = 0.8, palette = palette, nodata=0.0)
+    stp_map = get_leaflet_tile_layer(client, name = "Strike Probability Map", opacity = 0.8, palette = palette, nodata=0.0, max_zoom = 30)
     
     with rasterio.open(tif_path) as r:
         minv = "%.2f" % round(r.read(1).ravel().min(), 1)
