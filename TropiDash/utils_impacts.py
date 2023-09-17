@@ -254,7 +254,7 @@ def plot_cyclonehaz(cyh, rp, addlayer = True, coord = None, m = None):
 
 #%% Population functions
 
-def load_poplayer(path = None):
+def load_poplayer(path = None, returnpath = True):
     """
     Loads the population raster with 10 km spatial resolution saved in data/impacts folder
     The raster file was downloaded from https://hub.worldpop.org/geodata/summary?id=24777 with 1 km resolution
@@ -262,13 +262,18 @@ def load_poplayer(path = None):
     
     path: str, optional
         Path to the population raster file. Default is None
+    returnpath: bool, optional
+        If True, returns the path to the file. If False, a rasterio.DatasetReader object. Deafult is True
 
     Returns:
-    r: rasterio.DatasetReader object
+    r: rasterio.DatasetReader object or str
     """
     if path is None:
         path = "data/impacts/ppp_2020_1km_Aggregated_resampled_10km_sum_clipped_3402na_fix.tif"
-    r = rasterio.open(path)
+    if returnpath:
+        r = path
+    else:
+        r = rasterio.open(path)
     return(r)
 
 def plot_poplayer(addlayer = True, coord = None, m = None):
@@ -289,7 +294,7 @@ def plot_poplayer(addlayer = True, coord = None, m = None):
     """
     palette = [(255, 255, 229),(217, 235, 213),(180, 216, 197),(142, 197, 181),(105, 177, 165),(67, 158, 149),(44, 135, 127),(29, 110, 100),(14, 85, 74),(0, 60, 48)]
     palettehex = [rgb_to_hex(x) for x in palette]
-    r = load_poplayer()
+    r = rasterio.open(load_poplayer(returnpath = True))
     minv = "%.2f" % round(r.read(1).ravel().min(), 1)
     maxv = "%.2f" % round(r.read(1).ravel()[r.read(1).ravel()<r.nodata].max(), 1)
     if addlayer:
@@ -393,7 +398,7 @@ def plot_riskidx(var, csv = None, addlayer = True, coord = None, m = None):
     f = requests.get("https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/world-administrative-boundaries/exports/geojson?lang=en&timezone=Europe%2FBerlin")
     geo_json_data = json.loads(f.content)
     for d in geo_json_data["features"]:
-          d["iso"] = d["properties"]["iso3"]
+        d["iso"] = d["properties"]["iso3"]
     #Tool function
     def createandadd(geo_json_data, csv, v, m):
         #Layer selection dictionary
