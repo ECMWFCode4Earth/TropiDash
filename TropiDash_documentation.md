@@ -56,3 +56,11 @@ To better understand how the data are processed and how the interactive plots ar
 
 ### Functions
 
+## Section 5 - Point-Wise Temporal Evolution of Atmospheric Variable
+### Data sources
+
+Data source is the open dataset provided by the European Centre of Medium-Range Weather Forecasts (ECMWF), accessed with the Azure client through the ecmwf.opendata library. You can find more information regarding the open-data __[here](https://www.ecmwf.int/en/forecasts/datasets/open-data)__ The variables displayed in this section are: accumulated precipitation, mean sea level pressure, skin temperature, probability of wind gust of more than 25m/s at 10m. The available temporal resolution on the open-data site is of 6h for prec, msl and skt while for wg25 there is one timestep every 24h. In the present dashboard, data is displayed with a temporal resolution of 24h for wg25 and 12h for the other variables to not make the dashboard too slow computationally. 
+
+### Plot
+
+### Functions
