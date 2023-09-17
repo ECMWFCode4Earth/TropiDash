@@ -561,10 +561,10 @@ def impacts_plot(rp_coh, rp_cyh, coord):
 
     #Create the plot
     m = Map(basemap = basemaps.Esri.WorldTopoMap, center = coord, zoom = 3)
-    m = plot_coastalhaz(coh, rp_coh, m = m)
-    m = plot_cyclonehaz(cyh, rp_cyh, m = m)
     m = plot_poplayer(m = m)
     m = plot_riskidx(["Tsunamis", "Coastal_floods", "Sea_level_rise"], m = m)
+    m = plot_coastalhaz(coh, rp_coh, m = m)
+    m = plot_cyclonehaz(cyh, rp_cyh, m = m)
     m.add_control(LayersControl())
     m.layout.height = "700px"
 

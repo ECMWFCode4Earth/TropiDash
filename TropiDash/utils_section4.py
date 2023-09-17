@@ -13,7 +13,7 @@ import xarray as xr
 from utils_atm import sel_forecast, get_palette
 from utils_impacts import *
 
-def plot_section4(vardict, step, coord, stepsdict, rp_coh, rp_cyh, cyclonelayers = None):
+def plot_section4(vardict, step, coord, stepsdict, rp_coh, rp_cyh, cyclonelayers):
     """
     Plots everything together
 
@@ -50,13 +50,13 @@ def plot_section4(vardict, step, coord, stepsdict, rp_coh, rp_cyh, cyclonelayers
         s = sel_forecast(var, step, stepsdict)
         r = [x for x in vardict[var] if f"step{s}" in x][0] #extract the correct raster path
         if var != "wind":
-            r = rasterio.open(r)
             client = TileClient(r)
             t = get_leaflet_tile_layer(client, name = namedict[var], opacity = 0.7, palette = palette)
             m.add_layer(t)
+            with rasterio.open(r) as raster:
+                minv = "%.2f" % round(raster.read(1).ravel().min(), 1)
+                maxv = "%.2f" % round(raster.read(1).ravel().max(), 1)
             # add colorbar
-            minv = "%.2f" % round(r.read(1).ravel().min(), 1)
-            maxv = "%.2f" % round(r.read(1).ravel().max(), 1)
             cmap_control = ColormapControl(
                                             caption = namedict[var],
                                             colormap = bc.StepColormap(palette),
@@ -72,23 +72,21 @@ def plot_section4(vardict, step, coord, stepsdict, rp_coh, rp_cyh, cyclonelayers
                 'displayPosition': 'bottomleft',
                 'displayEmptyString': 'No wind data'
             }
-            r = xr.load_dataset(r)
-            wind_layer = Velocity(  name = namedict[var],
-                                    data=r,
-                                    zonal_speed='u10',
-                                    meridional_speed='v10',
-                                    latitude_dimension='latitude',
-                                    longitude_dimension='longitude',
-                                    velocity_scale=0.01,
-                                    max_velocity=float(max(r["v10"].values.ravel().max(), r["u10"].values.ravel().max())),
-                                    display_options = display_options,
-                                    color_scale = palette)
+            with xr.load_dataset(r) as netcdf:
+                wind_layer = Velocity(  name = namedict[var],
+                                        data = netcdf,
+                                        zonal_speed = 'u10',
+                                        meridional_speed = 'v10',
+                                        latitude_dimension = 'latitude',
+                                        longitude_dimension = 'longitude',
+                                        velocity_scale = 0.01,
+                                        max_velocity = float(max(netcdf["v10"].values.ravel().max(), netcdf["u10"].values.ravel().max())),
+                                        display_options = display_options,
+                                        color_scale = palette
+                                     )
             m.add_layer(wind_layer)
-        r.close() #close the raster dataset once plotted
     
-    # Add cyclone layers
-    # for layer in cyclonelayers:
-    #     m.add_layer(layer)
+    
     
     # Add impact layers
     #Download
@@ -102,7 +100,11 @@ def plot_section4(vardict, step, coord, stepsdict, rp_coh, rp_cyh, cyclonelayers
     m = plot_coastalhaz(coh, rp_coh, m = m)
     m = plot_cyclonehaz(cyh, rp_cyh, m = m)
     m = plot_poplayer(m = m)
-    m = plot_riskidx(["Tsunamis", "Coastal_floods", "Sea_level_rise"], m = m)
+    # m = plot_riskidx(["Tsunamis", "Coastal_floods", "Sea_level_rise"], m = m)
+
+    # Add cyclone layers
+    for layer in cyclonelayers:
+        m.add_layer(layer)
 
     m.add_control(LayersControl())
     m.layout.height = "700px"

@@ -638,4 +638,4 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
     # Add posibility to open the map full screen
     tc_track_map.add_control(ipyleaflet.FullScreenControl())
 
-    return tc_track_map
+    return(tc_track_map, [layer_group_avg, stp_map, cmap_control])
