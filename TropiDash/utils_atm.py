@@ -22,7 +22,7 @@ import xarray as xr
 
 def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure", pr = False):
     """
-    Function which downloads 1, 2, 5 and 10 days ahead forecasts from today
+    Function which downloads forecasts from today for the provided steps
 
     variables: str, list of str
         List containing the codes of the variables to be downloaded.
@@ -88,7 +88,7 @@ def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure", pr = F
                     client.retrieve(
                         request = rqt,
                         target = filename
-                    )
+                    );
             except:
                 # Usually early in the morning the forecast of the current day is not available
                 # > get the forecast of the day before
@@ -98,7 +98,7 @@ def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure", pr = F
                     client.retrieve(
                         request = rqt,
                         target = filename
-                    )
+                    );
                 if pr: print(f"Today's forecast not available, downloaded yesterday's forecast: {rqt['date'].strftime('%d/%b/%Y')}")       
             fnames.append(filename)
     return(fnames)
