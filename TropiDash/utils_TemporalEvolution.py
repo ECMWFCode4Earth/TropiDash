@@ -60,36 +60,8 @@ def handle_move(data_allpoints, steps_to_download):
         #lines4.scales["y"] = LinearScale(max=5.0, min=0.0)
 
     return on_move
-#def get_allvars_allpoints(date_to_download):
-#    """
-#        Read grib file of each variable; transform it to pandas dataframe;
-#            store dataframes into a dictionary with the key being the variable names. 
-#        Input: 
-#            - date_to_download: string (YYYYMMDD) or integer (0/1/-1) indicating the 
-#                starting date of the forecast
-#        Output: 
-#            - out: dictionary containing the pandas dataframe of each variable
-#    """
-#    out = {}
-#    for var in ['tp', 'msl', 'skt', '10fgg25']:
-#        
-#        filename = 'data/' + var + '_' + str(date_to_download) + '.grib'
-#        ds = xr.open_dataset(filename, engine="cfgrib")
 
-#        df = ds.to_dataframe()
-#        lats = df.index.get_level_values("latitude")
-#        lons = df.index.get_level_values("longitude")
-        
-#        if var == '10fgg25':
-#            vals = df['fg10g25']
-#        else:
-#            vals = df[var]
-        # DATAFRAME OF ALL POINTS FROM MAP
-#        df_datapoints = pd.DataFrame({'Lat': lats, 'Lon':lons, 'Value': vals})
-#        df_datapoints['point'] = [(x, y) for x,y in zip(df_datapoints['Lat'], df_datapoints['Lon'])]
-#        out[var] = df_datapoints
-#    return(out)  
-def get_allvars_allpoints(date_to_download):
+def get_allvars_allpoints(date_to_download, steps_to_download, steps_to_download2):
     """
         Read grib file of each variable; transform it to pandas dataframe;
             store dataframes into a dictionary with the key being the variable names. 
@@ -194,6 +166,7 @@ def get_initial_plot(data_allpoints, initial_date, initial_latlon, steps_to_down
 
     
     xdata1 = data_initial_plot['tp'].x.to_numpy()
+    
     ydata1 = data_initial_plot['tp'].y.to_numpy()
     lines1 = bqplot.Bars(x=[xdata1], y=[ydata1], 
               scales={"x": LinearScale(min=float(min(xdata1)), max=float(max(xdata1))),
@@ -264,96 +237,32 @@ def get_initial_plot(data_allpoints, initial_date, initial_latlon, steps_to_down
 
     return p1, p2, p3, p4
     
-def download_data_s5(date_to_download, steps_to_download, steps_to_download2):
-    ### DOWNLOAD DATA
-    '''Input: 
-        - date_to_download: string, date to download in the format %Y%m%d
-        - steps_to_download: list of strings with the steps to download for tp, msp, skn
-        - steps_to_download2: list of strings with the steps to download for wind prob.
-        '''
-    #print('Downloading data...')
-    client = Client("azure", beta=True) # ecwf: last five days
-    for var in ['tp', 'msl', 'skt']:
-     #   print(var)
-        client.retrieve(
-            date = date_to_download, #date start of the forecast
-            time = 0,  # time start of the forecast or 12
-            step = steps_to_download, #step of the forecast
-            stream = "oper",
-            type = "fc",
-            levtype = "sfc",
-            param = var,
-            target = 'data/' + var + '_' + str(date_to_download) + '.grib',
-        )
 
-    var = '10fgg25'
-    client.retrieve(
-            date = date_to_download, #date start of the forecast
-            time = 0,  # time start of the forecast or 12
-            step = steps_to_download2, #step of the forecast
-            stream = "enfo",
-            type = "ep",
-            param = var,
-            target = 'data/' + var + '_' + str(date_to_download) + '.grib',
-        )    
-
-#def load_data_s5(date_to_download):
-#    '''Input: 
-#    - date_to_download: string, date to download in the format %Y%m%d
-#    '''
-#    global data_allpoints
-#    #print('Loading data...')
-#    grib_data = {}
-#    for var in ['tp', 'msl', 'skt', '10fgg25']:
-
-#        filename = 'data/' + var + '_' + str(date_to_download) + '.grib'
-#        grib_data[var] = mgrib(grib_input_file_name=filename)
-
-#    data_allpoints = get_allvars_allpoints(date_to_download)
-#    data_allpoints['skt']['Value'] = data_allpoints['skt']['Value'] - 273.15
-    #data_allpoints['msl']['Value'] = data_allpoints['msl']['Value']/100
-
-    # LOAD AVG TRACK
-   # df_avg_track = pd.read_csv(filename_avg_track)
-   # return(data_allpoints)
-def load_data_s5(date_to_download):
-    global data_allpoints
-    grib_data = {}
-    for var in ['tp', 'msl', 'skt', '10fgg25']:
-        filename = 'data/' + var + '_' + str(date_to_download) + '.grib'
-        grib_data[var] = mgrib(grib_input_file_name=filename)
-    data_allpoints = get_allvars_allpoints(date_to_download)
-    return(data_allpoints)
-    #data_allpoints['skt']['Value'] = data_allpoints['skt']['Value'] - 273.15
-    #data_allpoints['msl']['Value'] = data_allpoints['msl']['Value']/100
-    
-    
     
     
 # CREATE MAP 
 
-def map_s5(initial_latlon, initial_date, final_date, avg_track):
+def map_s5(initial_latlon, initial_date, avg_track, steps_to_download, steps_to_download2):
     '''Input: 
     - initial_date, final_date: string of the date in format %Y%m%d
     Output: map
     '''
-    global steps_to_download
+    #global steps_to_download
     ### VARIABLE INITIALIZATION
-    cyclone_days = pd.date_range(start=initial_date, end=final_date)
-    date_to_download = initial_date
-    steps_to_download = list(np.arange(0,240, 12)[0:2*len(cyclone_days)])
+    #cyclone_days = pd.date_range(start=initial_date, end=final_date)
+    #date_to_download = initial_date
+    #steps_to_download = list(np.arange(0,240, 12)[0:2*len(cyclone_days)])
     #print(steps_to_download)
-    steps_to_download2 = [str(i)+'-'+str(i+24) for i in steps_to_download]
-    # download data: 
-    #download_data_s5(date_to_download, steps_to_download, steps_to_download2)
+    #steps_to_download2 = [str(i)+'-'+str(i+24) for i in steps_to_download]
 
     ### LOAD DATA
-    data_allpoints =load_data_s5(date_to_download)
+    data_allpoints = get_allvars_allpoints(initial_date, steps_to_download, steps_to_download2)
+    data_allpoints['skt']['Value'] = data_allpoints['skt']['Value'] - 273.15
+    data_allpoints['msl']['Value'] = data_allpoints['msl']['Value']/100
     #print('Printing map...')
     
     m = Map(
         center=[initial_latlon[0], initial_latlon[1]+50],
-        #basemap=ipyleaflet.basemaps.OpenStreetMap.France,
         basemap=ipyleaflet.basemaps.Esri.WorldTopoMap,
         zoom = 2,
     )
@@ -365,11 +274,7 @@ def map_s5(initial_latlon, initial_date, final_date, avg_track):
                                flex_flow='column', display='block')
     main_figure = widgets.Box(children=[p1, p2, p3, p4], layout=item_layout,  width='350px', height='350px')
 
-    #header = ipywidgets.HTML("<h1>Fictional World Weather</h1>", layout=ipywidgets.Layout(height='auto'))
-    #header.style.text_align='center'
-    #layout_plots = ipywidgets.AppLayout(header=header, center=main_figure)
     widget_control1 = ipyleaflet.WidgetControl(widget=main_figure, position="bottomright")
-    #widget_control1 = ipyleaflet.WidgetControl(widget=layout_plots, position="bottomright")
 
     marker = Marker(location=initial_latlon, draggable=True, name = 'Position') 
     m.add_layer(marker)
@@ -379,7 +284,6 @@ def map_s5(initial_latlon, initial_date, final_date, avg_track):
     m.add(widget_control1)
     avg_track_antpath = ipyleaflet.AntPath(locations = avg_track, color = "red")
 
-    #avg_track_antpath = ipyleaflet.AntPath(locations = df_avg_track.values.tolist(), color = "red")
     m.add_layer(avg_track_antpath)
     return m
     
