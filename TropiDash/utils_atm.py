@@ -125,7 +125,7 @@ def load_atmdata(varlst, fnames, open = False, pr = False):
         geenrated files from gen_raster
     """
     vardict = {}
-    for i, var in enumerate(varlst):
+    for var in varlst:
         lst = []
         tool = [x for x in fnames if var in x] #filenames containing the variable
         for filename in tool:

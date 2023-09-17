@@ -294,39 +294,38 @@ def plot_poplayer(addlayer = True, coord = None, m = None):
     """
     palette = [(255, 255, 229),(217, 235, 213),(180, 216, 197),(142, 197, 181),(105, 177, 165),(67, 158, 149),(44, 135, 127),(29, 110, 100),(14, 85, 74),(0, 60, 48)]
     palettehex = [rgb_to_hex(x) for x in palette]
-    r = rasterio.open(load_poplayer(returnpath = True))
-    minv = "%.2f" % round(r.read(1).ravel().min(), 1)
-    maxv = "%.2f" % round(r.read(1).ravel()[r.read(1).ravel()<r.nodata].max(), 1)
-    if addlayer:
-        client = TileClient(r)
-        t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km (2020)", opacity = 0.7, palette = palettehex, nodata = r.nodata)
-        cmap_control = ColormapControl(
-                                        caption = "Population count - 10km x 10km (2020)",
-                                        colormap = bc.StepColormap(palettehex),
-                                        value_min = float(minv),
-                                        value_max = float(maxv),
-                                        position = 'topright',
-                                        transparent_bg = True
-                                        )
-        m.add(cmap_control)
-        m.add_layer(t)
-    else:
-        m = Map(center = coord, zoom = 3)
-        client = TileClient(r)
-        t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km (2020)", opacity = 0.7, palette = palettehex, nodata = r.nodata)
-        cmap_control = ColormapControl(
-                                        caption = "Population count - 10km x 10km (2020)",
-                                        colormap = bc.StepColormap(palettehex),
-                                        value_min = float(minv),
-                                        value_max = float(maxv),
-                                        position = 'topright',
-                                        transparent_bg = True
-                                        )
-        m.add(cmap_control)
-        m.add_layer(t)
-        m.add_control(LayersControl())
-        m.layout.height = "700px"
-    r.close()
+    with rasterio.open(load_poplayer(returnpath = True)) as r:
+        minv = "%.2f" % round(r.read(1).ravel().min(), 1)
+        maxv = "%.2f" % round(r.read(1).ravel()[r.read(1).ravel()<r.nodata].max(), 1)
+        if addlayer:
+            client = TileClient(r)
+            t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km (2020)", opacity = 0.7, palette = palettehex, nodata = r.nodata)
+            cmap_control = ColormapControl(
+                                            caption = "Population count - 10km x 10km (2020)",
+                                            colormap = bc.StepColormap(palettehex),
+                                            value_min = float(minv),
+                                            value_max = float(maxv),
+                                            position = 'topright',
+                                            transparent_bg = True
+                                            )
+            m.add(cmap_control)
+            m.add_layer(t)
+        else:
+            m = Map(center = coord, zoom = 3)
+            client = TileClient(r)
+            t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km (2020)", opacity = 0.7, palette = palettehex, nodata = r.nodata)
+            cmap_control = ColormapControl(
+                                            caption = "Population count - 10km x 10km (2020)",
+                                            colormap = bc.StepColormap(palettehex),
+                                            value_min = float(minv),
+                                            value_max = float(maxv),
+                                            position = 'topright',
+                                            transparent_bg = True
+                                            )
+            m.add(cmap_control)
+            m.add_layer(t)
+            m.add_control(LayersControl())
+            m.layout.height = "700px"
     return(m)
 
 # %% World Risk Index functions
@@ -424,17 +423,8 @@ def plot_riskidx(var, csv = None, addlayer = True, coord = None, m = None):
                 name = namedict[v],
                 style = {'fillOpacity': 0.75, "color":"black"},
                 key_on = "iso",
-                #add palettehex
+                colormap = bc.StepColormap(palettehex)
                 )
-        # cmap_control = ColormapControl(
-        #                                 caption = namedict[v],
-        #                                 colormap = bc.StepColormap(palettehex),
-        #                                 value_min = float(min(mapping)),
-        #                                 value_max = float(max(mapping)),
-        #                                 position = 'topright',
-        #                                 transparent_bg = True
-        #                                 )
-        # m.add(cmap_control)
         m.add_layer(layer)
         return(m)
     #Plot
@@ -444,6 +434,17 @@ def plot_riskidx(var, csv = None, addlayer = True, coord = None, m = None):
                 m = createandadd(geo_json_data, csv, v, m)        
         else:
             m = createandadd(geo_json_data, csv, var, m)
+        palette = [(254, 254, 203),(251, 235, 153),(244, 204, 104),(235, 167, 84),(228, 134, 80),(209, 98, 76),(164, 70, 66),(114, 55, 46),(66, 40, 24),(25, 25, 0)]
+        palettehex = [rgb_to_hex(x) for x in palette]
+        cmap_control = ColormapControl(
+                                        caption = "Exposition Indexes",
+                                        colormap = bc.StepColormap(palettehex),
+                                        value_min = 0,
+                                        value_max = 100,
+                                        position = 'topright',
+                                        transparent_bg = True
+                                        )
+        m.add(cmap_control)
     else:
         m = Map(center = coord, zoom = 3)
         if type(var) is list:
