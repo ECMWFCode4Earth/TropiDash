@@ -9,6 +9,7 @@ import rasterio
 import pandas as pd
 import numpy as np
 import xarray as xr
+import rioxarray 
 import ipywidgets as widgets
 import branca.colormap as bc
 
@@ -37,8 +38,10 @@ def download_tracks_forecast(start_date):
     if os.path.exists(f"data/tracks/{start_date.strftime('%Y%m%d')}.bufr"):
         return start_date
     else:
+        # Define the ECMWF server source of data
         client = Client(source="azure")
         try:
+            # Download the data from the ECMWF server
             client.retrieve(
                 date=int(start_date.strftime("%Y%m%d")),
                 time=0,
@@ -50,8 +53,10 @@ def download_tracks_forecast(start_date):
             return start_date
         # Usually early in the morning the forecast of the current day is not available
         except:
+            # Remove possible empty file and download the forecast of the previous day
             os.remove(f"data/tracks/{start_date.strftime('%Y%m%d')}.bufr")
             start_date = start_date - timedelta(days=1)
+            # Download the data from the ECMWF server
             client.retrieve(
                 date=int(start_date.strftime("%Y%m%d")),
                 time=0,
@@ -78,10 +83,12 @@ def create_storms_df(start_date):
     df_storms = pdbufr.read_bufr(f"data/tracks/{start_date.strftime('%Y%m%d')}.bufr",
         columns=("stormIdentifier", "longStormName", "ensembleMemberNumber", "year", "month", "day", "hour", "latitude", "longitude",
                  "pressureReducedToMeanSeaLevel"))
+    
     # Load cyclone dataframe with Wind speed at 10m value
     df1 = pdbufr.read_bufr(f"data/tracks/{start_date.strftime('%Y%m%d')}.bufr",
         columns=("stormIdentifier", "longStormName", "ensembleMemberNumber", "latitude", "longitude",
                  "windSpeedAt10M"))
+    
     # Build the dataframe with the timeperiod column
     timeperiod = []
     start_date = datetime(df_storms.year[0], df_storms.month[0], df_storms.day[0], df_storms.hour[0])
@@ -93,9 +100,11 @@ def create_storms_df(start_date):
             df_track = df_cyclone[df_cyclone.ensembleMemberNumber == member]
             for i in range(len(df_track)):
                 timeperiod.append(6 * (i+1))
+    
     # Add the Wind speed at 10m column adn the timePeriod column to the storms dataframe 
     df_storms["windSpeedAt10M"] = df1.windSpeedAt10M
     df_storms["timePeriod"] = timeperiod
+    
     # Storms with stormIdentifier higher than 70 are not real storms
     drop_condition = df_storms.stormIdentifier < '70'
     df_storms = df_storms[drop_condition]
@@ -152,7 +161,9 @@ def meanposit(knpf, rlatpf, rlonpf):
 
 def mean_forecast_track(df_storm):
     """
-    Computes the average forecast track of a tropical cyclone given its ensemble members.
+    Computes the average forecast track of a tropical cyclone given its ensemble members together with the
+    10-th, 25-th, 50-th, 75-th and 90-th percentiles for the mean sea level pressure at the center of the cyclone
+    and the maximum sustained wind speed at 10m.
     
     df_storm: pandas DataFrame
         Dataframe containing the cyclone forecast data
@@ -162,13 +173,19 @@ def mean_forecast_track(df_storm):
         List containing (lat,lon) coordinates of the average track
     timesteps: list
         List containing the cyclone's timesteps
+    pressures: list
+        List containing the cyclone's mean sea level pressure percentiles
+    winds: list
+        List containing the cyclone's maximum sustained wind speed at 10m percentiles
     """
-    # Create 2 dataframe with latitude and logitude coordinates for each ensemble as columns
+    # Create empty dataframes to fill with each ensemble members information
     members = df_storm.ensembleMemberNumber.unique()
     df_lat_tracks = pd.DataFrame()
     df_lon_tracks = pd.DataFrame()
     df_prs_tracks = pd.DataFrame()
     df_wds_tracks = pd.DataFrame()
+
+    # Cycle thorugh the ensemble members and save the information in the just created dataframes
     for member in members:
         df_track = df_storm[df_storm.ensembleMemberNumber == member]
         df_track.reset_index(drop=True, inplace=True)
@@ -176,6 +193,7 @@ def mean_forecast_track(df_storm):
         df_lon_tracks[f'longitude{member}'] = df_track.longitude
         df_prs_tracks[f'pressure{member}'] = df_track.pressureReducedToMeanSeaLevel
         df_wds_tracks[f'wind{member}'] = df_track.windSpeedAt10M
+    
     # Add date information for the average track
     df_track.reset_index(drop=True, inplace=True)
     start = datetime(df_track.iloc[0]['year'], df_track.iloc[0]['month'], df_track.iloc[0]['day'], df_track.iloc[0]['hour'])
@@ -204,7 +222,7 @@ def mean_forecast_track(df_storm):
 
 def forecast_tracks_locations(df_storm_forecast):
     """
-    Returns the list containing all the cyclone's forecast ensemble tracks for plotting in ipyleaflet Map
+    Returns 4 lists containing all the cyclone's forecast ensemble tracks information for plotting in ipyleaflet Map
     
     df_storm_forecast: pandas.DataFrame
         Dataframe containing the cyclone forecast data
@@ -214,19 +232,29 @@ def forecast_tracks_locations(df_storm_forecast):
         List containing the lists of the ensemble tracks coordinates
     timesteps: list
         List containing the lists of the ensemble tracks timesteps
+    pressures: list
+        List containing the lists of the ensemble tracks mean sea level pressure at the storms centers
+    wind_speeds: list
+        List containing the lists of the ensemble tracks maximum sustained wind speed at 10m
     """
+    # List all the ensemble members tracks for the cyclone forecast and define the empty lists
     members = df_storm_forecast.ensembleMemberNumber.unique()
     locations = []
     timesteps = []
     pressures = []
     wind_speeds = []
+
+    # Cycle through the members of the forecast
     for member in members:
         df_track = df_storm_forecast[df_storm_forecast.ensembleMemberNumber == member]
         df_track.reset_index(drop=True, inplace=True)
-        # create timestep column in dataframe
+
+        # Create a date column in dataframe
         start = datetime(df_track.iloc[0]['year'], df_track.iloc[0]['month'], df_track.iloc[0]['day'], df_track.iloc[0]['hour'])
         df_track['date'] = start + timedelta(hours=6) * (df_track.index+1)
         df_track.dropna(subset = ['latitude', 'longitude'], inplace=True)
+
+        # Save the information from a single track in lists
         latitude = df_track.latitude.tolist()
         longitude = df_track.longitude.tolist()
         dates = df_track.date.tolist()
@@ -235,15 +263,19 @@ def forecast_tracks_locations(df_storm_forecast):
         locs = []
         tmtstps = []
         press = []
+
+        # Cycle through the list of location
         for i in range(len(latitude)):
             loc = (latitude[i], longitude[i])
             locs.append(loc)
             tmtstps.append(dates[i].strftime("%d-%m-%Y %H:%M"))
             press.append(pressure[i] * 10**-2) # Pa to hPa
+        
         locations.append(locs)
         timesteps.append(tmtstps)
         pressures.append(press)
         wind_speeds.append(wind_speed)
+
     return locations, timesteps, pressures, wind_speeds
 
 def observed_track_locations(df_storm_observed):
@@ -259,16 +291,20 @@ def observed_track_locations(df_storm_observed):
     timesteps: list
         List containing the lists of the observed track timesteps
     """
+    # Convert the pandas dataframe columns to lists
     latitude = df_storm_observed.LAT.squeeze().tolist()
     longitude = df_storm_observed.LON.squeeze().tolist()
     dates = df_storm_observed.ISO_TIME.squeeze().tolist()
     timesteps = []
     locations = []
+
+    # Cycle through the lists
     for i in range(len(latitude)):
         loc = (latitude[i], longitude[i])
         date = datetime.strptime(dates[i][:-3], ('%Y-%m-%d %H:%M'))
         locations.append(loc)
         timesteps.append(date.strftime('%d-%m-%Y %H:%M'))
+
     return locations, timesteps
 
 # Series of function needed to compute the strike probability map
@@ -481,6 +517,12 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
     Returns:
     tc_track_map: ipyleaflet.Map
         Map with cyclone track forecast and observation
+    layer_group_avg: ipyleaflet.LayerGroup
+        Layer group containing the average forecast track information
+    stp_map: ipyleaflet.TileLayer
+        Tile layer containing the strike probability map
+    cmap_control: ipyleaflet.ColormapControl
+        Colormap widget for the strike probability map
     """
     # storm data preparation for plotting
     df_f = df_storm_forecast[df_storm_forecast.ensembleMemberNumber.isin(ens_members)]
