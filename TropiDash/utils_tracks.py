@@ -89,6 +89,22 @@ def create_storms_df(start_date):
         columns=("stormIdentifier", "longStormName", "ensembleMemberNumber", "latitude", "longitude",
                  "windSpeedAt10M"))
     
+    # Add the Wind speed at 10m column to the storms dataframe 
+    df_storms["windSpeedAt10M"] = df1.windSpeedAt10M
+    
+    # Storms with stormIdentifier higher than 70 are not real storms
+    drop_condition = df_storms.stormIdentifier < '70'
+    df_storms = df_storms[drop_condition]
+
+    # Drop storm containing only NaN values
+    for cyclone in df_storms.stormIdentifier.unique():
+        df_storm = df_storms[df_storms.stormIdentifier == cyclone]
+        df_temp = df_storm.dropna(subset=['latitude', 'longitude'])
+        if df_temp.empty:
+            df_storms = df_storms[df_storms.stormIdentifier != cyclone]
+    
+    df_storms.reset_index(inplace=True, drop=True)
+    
     # Build the dataframe with the timeperiod column
     timeperiod = []
     start_date = datetime(df_storms.year[0], df_storms.month[0], df_storms.day[0], df_storms.hour[0])
@@ -101,13 +117,9 @@ def create_storms_df(start_date):
             for i in range(len(df_track)):
                 timeperiod.append(6 * (i+1))
     
-    # Add the Wind speed at 10m column adn the timePeriod column to the storms dataframe 
-    df_storms["windSpeedAt10M"] = df1.windSpeedAt10M
+    # Add the timePeriod column to the storms dataframe 
     df_storms["timePeriod"] = timeperiod
-    
-    # Storms with stormIdentifier higher than 70 are not real storms
-    drop_condition = df_storms.stormIdentifier < '70'
-    df_storms = df_storms[drop_condition]
+
     return df_storms
 
 def meanposit(knpf, rlatpf, rlonpf):
