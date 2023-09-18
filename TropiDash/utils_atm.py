@@ -170,7 +170,7 @@ def gen_raster(var, filename, delete = False, pr = False):
         if pr: print(var, " conversion")
         f = xr.load_dataset(filename, engine = "cfgrib")
         if var == "msl":
-            f["msl"] = f.msl/1000 #kPa
+            f["msl"] = f.msl/100 #hPa
         if var == "skt":
             f["skt"] = f["skt"] - 273.15 #Celsius degrees
         f = f.rio.write_crs("epsg:4326")
@@ -204,7 +204,7 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
     None
     """
     namedict = {
-        "msl": "Mean sea level pressure [kPa]",
+        "msl": "Mean sea level pressure [hPa]",
         "skt": "Skin temperature [°C]",
         "tp": "Total Precipitation [m]",
         "10fgg25": "Probability of 10 metre wind gust of at least 25 m/s [%]",

@@ -38,7 +38,7 @@ def plot_section4(vardict, step, coord, stepsdict, rp_coh, rp_cyh, cyclonelayers
     None
     """
     namedict = {
-        "msl": "Mean sea level pressure [kPa]",
+        "msl": "Mean sea level pressure [hPa]",
         "skt": "Skin temperature [°C]",
         "tp": "Total Precipitation [m]",
         "10fgg25": "Probability of 10 metre wind gust of at least 25 m/s [%]",
