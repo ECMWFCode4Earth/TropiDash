@@ -2,6 +2,9 @@
 ---
 ECMWF Code for Earth 2023 project
 
+Run the Dashboard directly on Binder!
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ECMWFCode4Earth/TropiDash/HEAD?urlpath=voila%2Frender%2FTropiDash%2FTropiDash_backbone.ipynb)
+
 ## Team
 Filippo Dainelli - filippo.dainelli@polimi.it\
 Paolo Colombo - paolo1.colombo@polimi.it\
