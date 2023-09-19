@@ -99,7 +99,7 @@ def plot_section4(vardict, step, coord, stepsdict, rp_coh, rp_cyh, cyclonelayers
     #Add
     m = plot_coastalhaz(coh, rp_coh, m = m)
     m = plot_cyclonehaz(cyh, rp_cyh, m = m)
-    m = plot_poplayer(m = m)
+    # m = plot_poplayer(m = m)
     # m = plot_riskidx(["Tsunamis", "Coastal_floods", "Sea_level_rise"], m = m)
 
     # Add cyclone layers
