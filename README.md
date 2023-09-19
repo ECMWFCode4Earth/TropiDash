@@ -1,8 +1,8 @@
 # TropiDash: towards a comprehensive tropical cyclone hazard dashboard
----
+
 ECMWF Code for Earth 2023 project
 
-Run the Dashboard directly on Binder!
+Run the Dashboard directly on Binder:
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ECMWFCode4Earth/TropiDash/HEAD?urlpath=voila%2Frender%2FTropiDash%2FTropiDash_backbone.ipynb)
 
 ## Team
@@ -19,7 +19,7 @@ This project will produce a platform on Jupyter Notebooks able to visualize key 
 4. Ensure the future maintenance
 
 ## Repository content
-- Folder TropiDash: contains the main script of the project (TropiDash_backbone.ipynb), the libraries created specifically for the project that are imported in TropiDash_backbone.ipynb (utils_NameSection.ipynb), and the folder 'data' in which data will be stored when running the main script.
-- Folder tutorials: contains one tutorial for each section (i.e. sections 1 to 5) of the dashboard plus another about downloading population data from Section 3; and the folder 'data' in which the data needed for the tutorials is already downloaded.
-- TropiDash Documentation for User Support (TropiDash_documentation.md): detailed description of the data sources, data structure, displayed plots and specific functions of each section (i.e. sections 1 to 5).
-- Package requirements (requirements.txt): list of necessary packages to run TropiDash_backbone.ipynb in local. 
+- **TropiDash folder**: it contains the main script of the project ([TropiDash_backbone.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/TropiDash_backbone.ipynb)), the libraries created specifically for the project that are imported in TropiDash_backbone.ipynb (utils_NameSection.ipynb), and the folder 'data' in which data will be stored when running the main script.
+- **tutorials** folder: it contains one tutorial for each Dashboard' Section (i.e. Sections 1 to 5) plus another about downloading population data used in Section 3. It also contains the folder 'data' where the data needed to run the tutorials is already downloaded.
+- **TropiDash Documentation for User Support** ([TropiDash_documentation.md](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash_documentation.md)): detailed description of the data sources, data structure, displayed plots and specific functions of each Dashboard' Section (i.e. Sections 1 to 5).
+- **Package requirements** ([requirements.txt](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/requirements.txt)): list of necessary packages to run TropiDash_backbone.ipynb in local. 
