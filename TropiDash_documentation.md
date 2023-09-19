@@ -104,19 +104,25 @@ The function used to manage the data download, manipulation and loading process 
 
 ## 3. Section 3 - Impacts variables
 
-This Section's goal is to provide the user with a plot containing variables which can help their understanding of the possible impacts the selected cyclone may generate (e.g. in terms of population impacted), as well as providing risk maps and exposition indexes. The tutorial for this Section usage is provided at [tutorials/Section2_Atmospheric_Variables_Tutorial.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/Section2_Atmospheric_Variables_Tutorial.ipynb)
+This Section's goal is to provide the user with a plot containing variables which can help their understanding of the possible impacts the selected cyclone may generate (e.g. in terms of population impacted), as well as providing risk maps and exposition indexes. The tutorial for this Section usage is provided at [tutorials/Section3_Impact_Variables_Tutorial.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/Section3_Impact_Variables_Tutorial.ipynb)
 
 ### Data sources
 
-Data for this Section 
+Data for this Section is downloaded from the following sources:
+- Coastal hazard for different return periods: https://datacatalog.worldbank.org/search/dataset/0038579/Global-coastal-flood-hazard
+- Cyclone hazard for different return periods: https://datacatalog.worldbank.org/search/dataset/0038577/Global-cyclone-hazard
+- Population count (1 x 1 km cells): https://hub.worldpop.org/geodata/summary?id=24777
+- Exposition Indexes: https://data.humdata.org/dataset/1efb6ee7-051a-440f-a2cf-e652fecccf73
+
+Population count raster was resampled using QGIS, then passed through a function explained in [tutorials/X1_Download_population_data.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/X1_Download_population_data.ipynb)
 
 ### Plot
 
 The plot is an interactive map deployed through [`ipyleaflet`](https://ipyleaflet.readthedocs.io/en/latest/index.html) and showing a list of layers. The layers can be selected and de-selected, the plot can be panned and zoomed and visualized in full-screen mode. The available layers are:
- - Cyclone hazard:
- - Coastal hazard:
- - Population:
- - Tsunamis, Coastal floods and Sea level rise Exposition Indexes:
+ - Cyclone hazard: ipyleaflet's `Tile layer` showing cyclone hazard for a selected return period;
+ - Coastal hazard: ipyleaflet's `Tile layer` showing coastal hazard for a selected return period;
+ - Population: ipyleaflet's `Tile layer` showing population count in 10 km x 10 km cells;
+ - Tsunamis, Coastal floods and Sea level rise Exposition Indexes: ipyleaflet's `Choropleth layer` showing each country's exposition index.
 
 Two widgets are shown to make the user choose which return period to assign to the layers of cyclone and coastal hazards.
 
@@ -129,8 +135,13 @@ The function used to manage the data download, their loading processes as well a
 ## Section 4 - Joint visualization
 
 To make the user able to visualize easier cyclone, atmospheric and impact variables this Section shows a selection of variables already shown in Section 1, 2 and 3, proiding all the available widgets. Below, the list of available data shown in this Section's plot:
-- 1
-- 
+- Cyclone's average forecasted track
+- Strike probability map
+- All atmospheric variables of Section 2
+- Population count
+- Cyclone and coastal hazard
+
+The tutorial for this Section usage is provided at [tutorials/Section3_Impact_Variables_Tutorial.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/Section4_Joint_Visualization.ipynb)
 
 ## Data sources
 
