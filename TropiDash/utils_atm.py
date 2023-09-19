@@ -5,7 +5,7 @@ import branca.colormap as bc
 import cfgrib
 from datetime import datetime, timedelta
 from ecmwf.opendata import Client
-from ipyleaflet import Map, ColormapControl, LayersControl, basemaps
+from ipyleaflet import Map, ColormapControl, LayersControl, basemaps, FullScreenControl
 from ipyleaflet.velocity import Velocity
 from IPython.display import display
 from localtileserver import get_leaflet_tile_layer, TileClient
@@ -253,6 +253,7 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
                                      )
             m.add_layer(wind_layer)
     m.add_control(LayersControl())
+    m.add_control(FullScreenControl())
     m.layout.height = "700px"
     display(m)
 

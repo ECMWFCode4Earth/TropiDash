@@ -1,18 +1,12 @@
 import ipywidgets as widgets
 import pandas as pd
-from IPython.display import display
 from Magics.macro import * 
 
-from ecmwf.opendata import Client
-import numpy as np
 import ipyleaflet
-from ipyleaflet import Map, Marker
 
 import ipywidgets
 import xarray as xr
 from scipy.spatial.distance import cdist
-
-import matplotlib.pyplot as plt
 
 from bqplot import Lines, Figure, LinearScale, Axis, DateScale
 import bqplot
@@ -262,7 +256,7 @@ def map_s5(initial_latlon, initial_date, avg_track, steps_to_download, steps_to_
     data_allpoints['msl']['Value'] = data_allpoints['msl']['Value']/100
     #print('Printing map...')
     
-    m = Map(
+    m = ipyleaflet.Map(
         center=[initial_latlon[0], initial_latlon[1]+50],
         basemap=ipyleaflet.basemaps.Esri.WorldTopoMap,
         zoom = 2,
@@ -277,7 +271,7 @@ def map_s5(initial_latlon, initial_date, avg_track, steps_to_download, steps_to_
 
     widget_control1 = ipyleaflet.WidgetControl(widget=main_figure, position="bottomright")
 
-    marker = Marker(location=initial_latlon, draggable=True, name = 'Position') 
+    marker = ipyleaflet.Marker(location=initial_latlon, draggable=True, name = 'Position') 
     m.add_layer(marker)
     marker.on_move(handle_move(data_allpoints, steps_to_download))
 
@@ -286,5 +280,6 @@ def map_s5(initial_latlon, initial_date, avg_track, steps_to_download, steps_to_
     avg_track_antpath = ipyleaflet.AntPath(locations = avg_track, color = "red")
 
     m.add_layer(avg_track_antpath)
+    m.add_control(ipyleaflet.FullScreenControl())
     return m
     

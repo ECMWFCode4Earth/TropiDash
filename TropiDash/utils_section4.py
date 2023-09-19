@@ -2,7 +2,7 @@
 # isort: off
 
 import branca.colormap as bc
-from ipyleaflet import Map, ColormapControl, LayersControl, basemaps
+from ipyleaflet import Map, ColormapControl, LayersControl, basemaps, FullScreenControl
 from ipyleaflet.velocity import Velocity
 from IPython.display import display
 from localtileserver import get_leaflet_tile_layer, TileClient
@@ -99,7 +99,7 @@ def plot_section4(vardict, step, coord, stepsdict, rp_coh, rp_cyh, cyclonelayers
     #Add
     m = plot_coastalhaz(coh, rp_coh, m = m)
     m = plot_cyclonehaz(cyh, rp_cyh, m = m)
-    # m = plot_poplayer(m = m)
+    m = plot_poplayer(m = m)
     # m = plot_riskidx(["Tsunamis", "Coastal_floods", "Sea_level_rise"], m = m)
 
     # Add cyclone layers
@@ -107,5 +107,6 @@ def plot_section4(vardict, step, coord, stepsdict, rp_coh, rp_cyh, cyclonelayers
         m.add_layer(layer)
 
     m.add_control(LayersControl())
+    m.add_control(FullScreenControl())
     m.layout.height = "700px"
     display(m)
