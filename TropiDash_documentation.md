@@ -2,6 +2,35 @@
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
+<!-- code_chunk_output -->
+
+- [TropiDash Documentation for User support](#tropidash-documentation-for-user-support)
+  - [Introduction](#introduction)
+  - [Section 1 - Tropical Cyclone Tracks and Characteristics](#section-1---tropical-cyclone-tracks-and-characteristics)
+    - [Data sources](#data-sources)
+    - [Data structure](#data-structure)
+    - [Plot](#plot)
+    - [Functions](#functions)
+  - [2. Section 2 - Atmospherical variables](#2-section-2---atmospherical-variables)
+    - [Data sources](#data-sources-1)
+    - [Data manipulation](#data-manipulation)
+    - [Plot](#plot-1)
+    - [Functions](#functions-1)
+  - [3. Section 3 - Impacts variables](#3-section-3---impacts-variables)
+    - [Data sources](#data-sources-2)
+    - [Plot](#plot-2)
+    - [Functions](#functions-2)
+  - [Section 4 - Joint visualization](#section-4---joint-visualization)
+  - [Data sources](#data-sources-3)
+  - [Functions](#functions-3)
+  - [Section 5 - Point-Wise Temporal Evolution of Atmospheric Variable](#section-5---point-wise-temporal-evolution-of-atmospheric-variable)
+    - [Data sources](#data-sources-4)
+    - [Plot](#plot-3)
+    - [Functions](#functions-4)
+
+<!-- /code_chunk_output -->
+
+
 ## Introduction
 
 Welcome to the User Support Documentation for **TropiDash**, an innovative dashboard designed for the visualization and display of tropical cyclone data. Developed using Python within a Jupyter Notebook environment, TropiDash harnesses the power of coding to deliver dynamic insights into tropical cyclones hazard and impacts. As part of the Code for Earth initiative by the European Centre of Medium-Range Weather Forecast (ECMWF), this dashboard represents a collaborative effort to provide accessible and actionable information about tropical cyclones. TropiDash is organized into five distinct sections, each offering unique perspectives on tropical cyclones:
@@ -38,23 +67,78 @@ Considering the information available from the presented dataset, we organize th
 
 ### Functions
 
-To better understand how the data are processed and how the interactive plots are produced please refer to the python script containing the functions for this section: __[utils_tracks.py](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/utils_tracks.py)__.
+To better understand how the data are processed and how the interactive plots are produced please refer to the python script containing the functions for this section: __[TropiDash/utils_tracks.py](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/utils_tracks.py)__.
 
 ## 2. Section 2 - Atmospherical variables
 
+This Secton's goal is to provide the user the possibility to visualize forecasts of atmospheric variables related to cyclone formation and forecasting. The variables are plotted at user-selected time steps ahead from the user-selected date. The tutorial for this Section usage is provided at [tutorials/Section2_Atmospheric_Variables_Tutorial.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/Section2_Atmospheric_Variables_Tutorial.ipynb)
+
 ### Data sources
+
+The atmosperic data source is the open dataset provided by the European Centre of Medium-Range Weather Forecasts (ECMWF), accessed with the Azure client through [`ecmwf.opendata`](https://github.com/ecmwf/ecmwf-opendata) package. You can find more information regarding the open-data __[here](https://www.ecmwf.int/en/forecasts/datasets/open-data)__ 
+
+Data products used here are based on the medium-range (high-resolution and ensemble) forecast model which is released 1 hour after the real-time dissemination schedule at 0.4 degrees resolution. The downloaded data in this section corresponds to the forecast released on the starting date of the cyclone. The temporal steps displayed are 1 every 12 hours for each day from the starting  date of the selected cyclone until the last day of the cyclone.
+
+The variables displayed in this section are the accumulated precipitation, mean sea level pressure, skin temperature, wind speed and direction, and probability of wind gusts of more than 25 m/s at 10 meters.
+
+### Data manipulation
+
+The original data files downloaded from ECMWF's Open Data catalog are in GRIB format. This format has been changed to .tif through `xarray`, `rioxarray`, `cfgrib` and `rasterio` packages to be able to plot the data through `localtilesever` as an ipyleaflet's `Tile layer`. The only operation done on the data itself was to adjust the measuring units to better understand the data (e.g. from Pa to hPa).
 
 ### Plot
 
+The plot is an interactive map deployed through [`ipyleaflet`](https://ipyleaflet.readthedocs.io/en/latest/index.html) and showing a list of layers. The layers can be selected and de-selected, the plot can be panned and zoomed and visualized in full-screen mode. Each variable shown is a **forecasted** variable. The available layers are:
+ - Mean sea level pressure: ipyleaflet's `Tile layer` showing the global mean sea level pressure in hPa;
+ - Skin temperature: ipyleaflet's `Tile layer` showing gloabl surface temperarure expressed in °C;
+ - Total Precipitation: ipyleaflet's `Tile layer` showing worldwide total precipitation in m;
+ - Probability of 10 metre wind gust of at least 25 m/s: ipyleaflet's `Tile layer` showing gloablly the probability expressed in percentage to have wind gust of at least 25 m/s at ten meters.
+ - 10 metre wind component: ipyleaflet's `Velocity layer` showing the wind speed and direction.
+
+A widget is shown to make the user select the forecasting step, meaning how many hours ahead from the selected date will the variable shown be forecasted.
+
+Colorbars are provided in the top right corner to be able to interpret the data shown.
+
 ### Functions
+
+The function used to manage the data download, manipulation and loading process as well as the plotting function are written and documented in: __[TropiDash/utils_atm.py](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/utils_atm.py)__.
 
 ## 3. Section 3 - Impacts variables
 
+This Section's goal is to provide the user with a plot containing variables which can help their understanding of the possible impacts the selected cyclone may generate (e.g. in terms of population impacted), as well as providing risk maps and exposition indexes. The tutorial for this Section usage is provided at [tutorials/Section2_Atmospheric_Variables_Tutorial.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/Section2_Atmospheric_Variables_Tutorial.ipynb)
+
 ### Data sources
+
+Data for this Section 
 
 ### Plot
 
+The plot is an interactive map deployed through [`ipyleaflet`](https://ipyleaflet.readthedocs.io/en/latest/index.html) and showing a list of layers. The layers can be selected and de-selected, the plot can be panned and zoomed and visualized in full-screen mode. The available layers are:
+ - Cyclone hazard:
+ - Coastal hazard:
+ - Population:
+ - Tsunamis, Coastal floods and Sea level rise Exposition Indexes:
+
+Two widgets are shown to make the user choose which return period to assign to the layers of cyclone and coastal hazards.
+
+Colorbars are provided in the top right corner to be able to interpret the data shown.
+
 ### Functions
+
+The function used to manage the data download, their loading processes as well as the plotting functions are written and documented in: __[TropiDash/utils_impacts.py](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/utils_impacts.py)__.
+
+## Section 4 - Joint visualization
+
+To make the user able to visualize easier cyclone, atmospheric and impact variables this Section shows a selection of variables already shown in Section 1, 2 and 3, proiding all the available widgets. Below, the list of available data shown in this Section's plot:
+- 1
+- 
+
+## Data sources
+
+The sources for cylcone variables are listed in Section 1, the ones for atmospheric variables are listed in Section 2, and the ones for impacts variables are lister in Section 3.
+
+## Functions
+
+The plotting function is provided at __[TropiDashutils_section4.py](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/utils_section4.py)__.
 
 ## Section 5 - Point-Wise Temporal Evolution of Atmospheric Variable
 
@@ -62,13 +146,11 @@ introducció
 
 ### Data sources
 
-Data source is the open dataset provided by the European Centre of Medium-Range Weather Forecasts (ECMWF), accessed with the Azure client through the ecmwf.opendata library. You can find more information regarding the open-data __[here](https://www.ecmwf.int/en/forecasts/datasets/open-data)__ 
-
-The data products used here are based on the medium-range (high-resolution and ensemble) forecast model which is released 1 hour after the real-time dissemination schedule at 0.4 degrees resolution. The downloaded data in this section corresponds to the forecast released on the starting date of the cyclone. The temporal steps displayed are 1 every 12 hours for each day from the starting  date of the selected cyclone until the last day of the cyclone. The variables displayed in this section are the accumulated precipitation, mean sea level pressure, skin temperature, and probability of wind gusts of more than 25m/s at 10m. 
+The data source of variables used in this section is ECMWF's Open Data catalog, the same explained in [Section 2](#2-section-2---atmospherical-variables). The variables displayed in this section are the accumulated precipitation, mean sea level pressure, skin temperature, and probability of wind gusts of more than 25 m/s at 10 meters.
 
 ### Plot
 
-In this section, users can find a background map, a marker and the temporal evolution on the marker position of the accumulated precipitation, mean sea level pressure, skin temperature, and probability of wind gusts of more than 25m/s at 10m, from the first day of the selected cyclone until the last one. The red-lashed line represents the average track of the tracks given by the ensembles. The plots are automatically uploaded every time the user moves the pointer location. Please notice that it may take a few seconds to upload the plots. The first variable displayed is the daily accumulated precipitation and the other ones appear on scrolling down on the white box. 
+In this section, users can find a background map, a marker and the temporal evolution on the marker position of the accumulated precipitation, mean sea level pressure, skin temperature, and probability of wind gusts of more than 25m/s at 10m, from the first day of the selected cyclone until the last one. The red-lashed line represents the average track of the tracks given by the ensembles. The plots are automatically uploaded every time the user moves the pointer location. Please notice that it may take a few seconds to upload the plots. The first variable displayed is the daily accumulated precipitation and the other ones appear on scrolling down on the white box.
 
 ### Functions
-To better understand how the data are processed and how the interactive plots are produced please refer to the python script containing the functions for this section: __[utils_tracks.py](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/utils_tracks.py)__.
+To better understand how the data are processed and how the interactive plots are produced please refer to the python script containing the functions for this section: __[TropiDash/utils_TemporalEvolution.py](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/utils_TemporalEvolution.py)__.
