@@ -586,7 +586,10 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
                     location=locs[j],
                     radius=1,
                     color=colours[colour],
-                    popup=widgets.HTML(value=f'<center><b>VT: {tmtstps[j]}</b> <br> Pressure: {press[j]:.2f} hPa <br> Wind speed: {wind[j]:.2f} m/s</center>')
+                    popup=widgets.HTML(value=f"<center><b>VT: {tmtstps[j]}</b> </center>"
+                                       f"<center> ({locs[j][0]:.2f}, {locs[j][1]:.2f}) </center>"
+                                       f"<center> Pressure: {press[j]:.2f} hPa</center>" 
+                                       f"<center>Wind speed: {wind[j]:.2f} m/s</center>")
                 )
                 markers.append(marker)
             markers_layer = ipyleaflet.LayerGroup(layers=markers)
@@ -618,6 +621,7 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
             radius=1,
             color="black",
             popup=widgets.HTML(value=f"<center><b>VT: {timesteps_avg[avg]} </b> </center>"
+                               f"<center> ({locations_avg[avg][0]:.2f}, {locations_avg[avg][1]:.2f}) </center>"
                                f"Percentiles: Pressure || Wind speed <br>"
                                f"10<sup>th</sup>: {pressures_avg[avg][0]:.1f} hPa || {winds_avg[avg][0]:.2f} m/s <br>"
                                f"25<sup>th</sup>: {pressures_avg[avg][1]:.1f} hPa || {winds_avg[avg][1]:.2f} m/s <br>"
@@ -643,8 +647,10 @@ def plot_cyclone_tracks_ipyleaflet(ens_members, df_storm_forecast, df_storm_obse
             location = locations_o[o],
             radius=1,
             color="#ff00ff",
-            popup=widgets.HTML(value=f'<b>VT: {timesteps_o[o]} </b>')
-        )
+            popup=widgets.HTML(value=f"<b>VT: {timesteps_o[o]} </b>"
+                               f"<center> ({locations_o[o][0]:.2f}, {locations_o[o][1]:.2f}) </center>"
+                               )
+            )
         marker_o.append(marker)
         
     # Define raster layer for strike probability map and its colormap widget
