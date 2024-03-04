@@ -3,6 +3,7 @@ bqplot
 branca
 cfgrib
 datetime
+eccodes
 ecmwflibs
 ecmwf-opendata
 haversine
