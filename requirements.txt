@@ -1,21 +1,25 @@
-name: TropiDash
-channels:
-  - conda-forge
-  - defaults
-dependencies:
-  - jupyterlab
-  - pdbufr
-  - ecmwf-opendata
-  - xarray
-  - ipywidgets
-  - ipyleaflet
-  - rasterio
-  - rioxarray
-  - haversine
-  - localtileserver
-  - cfgrib
-  - matplotlib
-  - voila
-  - bqplot
-  - magics
-prefix: /opt/miniconda3/envs/TropiDash
+birdy
+bqplot
+branca
+cfgrib
+datetime
+ecmwflibs
+ecmwf-opendata
+eccodes
+haversine
+IPython
+ipyleaflet
+ipywidgets
+jupyterlab
+localtileserver @ git+https://github.com/paolchol/localtileserver.git@fix_palettes
+magics
+matplotlib
+numpy
+pandas
+pdbufr
+rasterio
+requests
+rioxarray
+scipy
+voila
+xarray
