@@ -3,8 +3,8 @@ bqplot
 branca
 cfgrib
 datetime
-eccodes
-ecmwflibs
+eccodes #conda forge
+# ecmwflibs
 ecmwf-opendata
 haversine
 IPython
@@ -12,7 +12,7 @@ ipyleaflet
 ipywidgets
 jupyterlab
 localtileserver
-magics
+magics #conda forge
 matplotlib
 numpy
 pandas
