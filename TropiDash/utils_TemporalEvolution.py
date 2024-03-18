@@ -1,6 +1,5 @@
 import ipywidgets as widgets
 import pandas as pd
-from Magics.macro import * 
 
 import ipyleaflet
 
