@@ -3,6 +3,7 @@ bqplot
 branca
 cfgrib
 datetime
+eccodes
 ecmwflibs
 ecmwf-opendata
 haversine
@@ -10,7 +11,7 @@ IPython
 ipyleaflet
 ipywidgets
 jupyterlab
-localtileserver @ git+https://github.com/paolchol/localtileserver.git@fix_palettes
+localtileserver
 magics
 matplotlib
 numpy
