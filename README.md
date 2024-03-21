@@ -32,8 +32,9 @@ For the best experience with TropiDash, we recommend downloading and running the
 ```bash
     jupyter lab
 ```
-7. **Open the main Notebook:** In Jupyter Lab, navigate to the folder containing [TropiDash_backbone.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/TropiDash_backbone.ipynb), open it.
-8. **Run the Dashboard:** Execute the dashboard by clicking on the Voilà button within Jupyter Lab.
+7. **Open the main Notebook:** In Jupyter Lab, navigate to the folder containing [TropiDash_backbone.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/TropiDash_backbone.ipynb) and open it.
+8. **Run the Dashboard:** Execute the dashboard by clicking on the Voilà button within Jupyter Lab. 
+<img width="413" alt="Screenshot 2024-03-21 at 19 21 43" src="https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/93672154-9a4c-4c36-b067-56b2edebef22">
 
 
 ## Dashboard Preview
