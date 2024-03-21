@@ -1,7 +1,7 @@
 # TropiDash: towards a comprehensive tropical cyclone hazard dashboard
 
 TropiDash is a visualization tool designed to empower researchers, meteorologists, and enthusiasts with the ability to analyze and interpret tropical cyclone data effectively. Utilizing web technologies and data visualization libraries, TropiDash provides a comprehensive overview of tropical cyclones, their paths, intensities, and potential impacts. The dashboard is developed as a Jupyter Notebooks allowing also less experienced user to access it without problems. 
-The project was developed as part of the ECMWF Code for Earth 2023 initiative. [Here](https://codeforearth.ecmwf.int/) you can fdin more details regarding Code for Earth. [Here](https://github.com/ECMWFCode4Earth/challenges_2023) you can find more details about the other projects of 2023.
+The project was developed as part of the ECMWF Code for Earth 2023 initiative. [Here](https://codeforearth.ecmwf.int/) you can find more details regarding Code for Earth. [Here](https://github.com/ECMWFCode4Earth/challenges_2023) you can find more details about the other projects of 2023.
 
 Run the Dashboard directly on Binder:
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ECMWFCode4Earth/TropiDash/HEAD?urlpath=voila%2Frender%2FTropiDash%2FTropiDash_backbone.ipynb)
