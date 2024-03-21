@@ -37,6 +37,8 @@ Run the Dashboard directly on Binder:
 
 ![section1](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/db93ea73-5e16-4e97-aff6-3f96d91e3df8)
 
+![section2](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/f8f09d3b-e745-4753-8f6b-17fb494a0730)
+
 ## Getting Involved
 
 Contributions to TropiDash are welcome! Whether it's enhancing functionality, improving documentation, or reporting issues, your input helps us make TropiDash better for everyone.
