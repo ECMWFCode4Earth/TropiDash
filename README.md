@@ -16,46 +16,51 @@ For the best experience with TropiDash, we recommend downloading and running the
 
 1. **Install Conda:** If you don't have Conda, download and install it from the official [Conda website](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
 2. **Open Your Terminal:** Access your terminal or command prompt.
-3. **Navigate to Your Desired Directory** Use the `cd` command to navigate to the folder where you want to store TropiDash.
-4. **Clone the repository:** Execute the clone command. You should have git installed, if you don't check the [Installation guide](https://git-scm.com/book/it/v2/Per-Iniziare-Installing-Git)
-
+3. **Navigate to Your Desired Directory:** Use the `cd` command to navigate to the folder where you want to store TropiDash.
+4. **Clone the repository:** Execute the clone command. You should have `git` installed, if you don't check the [Installation guide](https://git-scm.com/book/it/v2/Per-Iniziare-Installing-Git).
 ```bash
     git clone https://github.com/ECMWFCode4Earth/TropiDash
 ```
-
-5. Create the conda environemnt with the required dependecies to run the dasboard:
-
+5. **Create and Activate the Conda Environment:** This ensures all dependecies are properly installed. Execute the 2 following commands:
 ```bash
     conda env create -f environment.yml
 ```
+```bash
+    conda activate tropidash
+```
+6. **Launch Jupyter Lab:** Navigate to the TropiDash directory in your terminal and execute:
+```bash
+    jupyter lab
+```
+7. **Open the main Notebook:** In Jupyter Lab, navigate to the folder containing [TropiDash_backbone.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/TropiDash_backbone.ipynb), open it.
+8. **Run the Dashboard:** Execute the dashboard by clicking on the Voilà button within Jupyter Lab.
 
-3. Launch the dashboard by running the [TropiDash_backbone.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/TropiDash_backbone.ipynb)
 
 ## Dashboard Preview
 
 Get a closer look at TropiDash in action! These GIFs showcase some of the dashboard's features, demonstrating how users can interact with tropical cyclone data for insightful analysis.
 
-Launching TropiDash in Jupyterlab.
+*Launching TropiDash in Jupyterlab.*
 
 ![voila_launch](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/40418464-992b-41cc-987c-0dc2a4d86a29)
 
-Update the forecast after selecting the cyclone to visualize and the forecast date to consider.
+*Update the forecast after selecting the cyclone to visualize and the forecast date to consider.*
 
 ![dashboard_launch](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/7bd117ba-c799-4159-a08f-9f8da977b263)
 
-Check the average forecast track and the information at a specific location.
+*Check the average forecast track and the information at a specific location.*
 ![section1](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/7fa6d1dd-fc98-4251-9fda-8021846b14ae)
 
-Look at the total precipitation and the probability of 10m wind gusts over 25 m/s associated with the cyclone.
+*Look at the total precipitation and the probability of 10m wind gusts over 25 m/s associated with the cyclone.*
 ![section2](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/f8f09d3b-e745-4753-8f6b-17fb494a0730)
 
-Check the coastal hazard risk over the east coast of North America.
+*Check the coastal hazard risk over the east coast of North America.*
 ![section3](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/4370a5c2-f69a-4a5b-98d9-7b6672105107)
 
-Consult simultaneously the average forecast track and the coastal hazard risk of the region on the cyclone's path.
+*Consult simultaneously the average forecast track and the coastal hazard risk of the region on the cyclone's path.*
 ![section4](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/468524fb-bd82-434f-a4a2-604b853d9392)
 
-Check the precipitation forecast in a specific point along the average forecast track.
+*Check the precipitation forecast in a specific point along the average forecast track.*
 ![section5](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/f26d26d8-6a13-4b43-a3b4-7680c6f10083)
 
 ## Getting Involved
