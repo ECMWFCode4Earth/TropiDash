@@ -1,6 +1,7 @@
 # TropiDash: towards a comprehensive tropical cyclone hazard dashboard
 
-ECMWF Code for Earth 2023 project
+TropiDash is a visualization tool designed to empower researchers, meteorologists, and enthusiasts with the ability to analyze and interpret tropical cyclone data effectively. Utilizing in web technologies and data visualization libraries, TropiDash provides a comprehensive overview of tropical cyclones, their paths, intensities, and potential impacts.
+The project was developed as part of the ECMWF Code for Earth 2023 initiative. [Here](https://codeforearth.ecmwf.int/) you can fdin more details regarding Code for Earth. [Here](https://github.com/ECMWFCode4Earth/challenges_2023) you can find more details about the other projects of 2023.  
 
 Run the Dashboard directly on Binder:
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ECMWFCode4Earth/TropiDash/HEAD?urlpath=voila%2Frender%2FTropiDash%2FTropiDash_backbone.ipynb)
@@ -23,3 +24,27 @@ This project will produce a platform on Jupyter Notebooks able to visualize key 
 - **tutorials** folder: it contains one tutorial for each Dashboard' Section (i.e. Sections 1 to 5) plus another about downloading population data used in Section 3. It also contains the folder 'data' where the data needed to run the tutorials is already downloaded.
 - **TropiDash Documentation for User Support** ([TropiDash_documentation.md](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash_documentation.md)): detailed description of the data sources, data structure, displayed plots and specific functions of each Dashboard' Section (i.e. Sections 1 to 5).
 - **Package requirements** ([requirements.txt](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/requirements.txt)): list of necessary packages to run TropiDash_backbone.ipynb in local. 
+
+## Getting started 
+
+### Installation
+
+1. Clone the repository:
+
+```bash
+    git clone https://github.com/ECMWFCode4Earth/TropiDash
+```
+
+2. Create the conda environemnt with the required dependecies to run the dasboard:
+
+```bash
+    conda env create -f environment.yml
+```
+## Getting Involved
+
+Contributions to TropiDash are welcome! Whether it's enhancing functionality, improving documentation, or reporting issues, your input helps us make TropiDash better for everyone.
+
+## License
+
+This project is licensed under the Apache-2.0 License - see the LICENSE file for details.
+
