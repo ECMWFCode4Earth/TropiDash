@@ -19,15 +19,14 @@ This project will produce a platform on Jupyter Notebooks able to visualize key 
 3. Platform development
 4. Ensure the future maintenance
 
-## Repository content
-- **TropiDash folder**: it contains the main script of the project ([TropiDash_backbone.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/TropiDash_backbone.ipynb)), the libraries created specifically for the project that are imported in TropiDash_backbone.ipynb (utils_NameSection.ipynb), and the folder 'data' in which data will be stored when running the main script.
-- **tutorials** folder: it contains one tutorial for each Dashboard' Section (i.e. Sections 1 to 5) plus another about downloading population data used in Section 3. It also contains the folder 'data' where the data needed to run the tutorials is already downloaded.
-- **TropiDash Documentation for User Support** ([TropiDash_documentation.md](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash_documentation.md)): detailed description of the data sources, data structure, displayed plots and specific functions of each Dashboard' Section (i.e. Sections 1 to 5).
-- **Package requirements** ([requirements.txt](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/requirements.txt)): list of necessary packages to run TropiDash_backbone.ipynb in local. 
+## Repository structure
+
+- **TropiDash folder**: Main script ([TropiDash_backbone.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/TropiDash_backbone.ipynb)), utility libraries, and data storage folders.
+- **Tutorials Folder**: Step-by-step guides for each dashboard section and data downloading instructions.
+- **Documentation** ([TropiDash_documentation.md](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash_documentation.md)): Detailed data source, structure, and function explanations for user support.
+- **Python Packages** ([environment.yml](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/environment.yml)): Environment file with essential packages for local deployment. 
 
 ## Getting started 
-
-### Installation
 
 1. Clone the repository:
 
@@ -40,6 +39,9 @@ This project will produce a platform on Jupyter Notebooks able to visualize key 
 ```bash
     conda env create -f environment.yml
 ```
+
+3. Launch the dashboard by running the [TropiDash_backbone.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/TropiDash_backbone.ipynb)
+
 ## Getting Involved
 
 Contributions to TropiDash are welcome! Whether it's enhancing functionality, improving documentation, or reporting issues, your input helps us make TropiDash better for everyone.
