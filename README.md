@@ -7,20 +7,23 @@ For the best experience with TropiDash, we recommend downloading and running the
 
 ## Repository structure
 
-- **TropiDash folder**: Main notebook ([TropiDash_backbone.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/TropiDash_backbone.ipynb)), utility libraries, and data storage folders.
-- **Tutorials Folder**: Step-by-step guides for each dashboard section and data downloading instructions.
-- **Documentation** ([TropiDash_documentation.md](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash_documentation.md)): Detailed data source, structure, and function explanations for user support.
-- **Python Packages** ([environment.yml](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/environment.yml)): Environment file with essential packages for local deployment. 
+- **TropiDash folder:** Main notebook ([TropiDash_backbone.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/TropiDash_backbone.ipynb)), utility libraries, and data storage folders.
+- **Tutorials Folder:** Step-by-step guides for each dashboard section and data downloading instructions.
+- **Documentation ([TropiDash_documentation.md](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash_documentation.md)):** Detailed data source, structure, and function explanations for user support.
+- **Python Packages ([environment.yml](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/environment.yml)):** Environment file with essential packages for local deployment. 
 
 ## Getting started 
 
-1. Clone the repository:
+1. **Install Conda:** If you don't have Conda, download and install it from the official [Conda website](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
+2. **Open Your Terminal:** Access your terminal or command prompt.
+3. **Navigate to Your Desired Directory** Use the `cd` command to navigate to the folder where you want to store TropiDash.
+4. **Clone the repository:** Execute the clone command. You should have git installed, if you don't check the [Installation guide](https://git-scm.com/book/it/v2/Per-Iniziare-Installing-Git)
 
 ```bash
     git clone https://github.com/ECMWFCode4Earth/TropiDash
 ```
 
-2. Create the conda environemnt with the required dependecies to run the dasboard:
+5. Create the conda environemnt with the required dependecies to run the dasboard:
 
 ```bash
     conda env create -f environment.yml
