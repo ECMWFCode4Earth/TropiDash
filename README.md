@@ -31,7 +31,7 @@ Run the Dashboard directly on Binder:
 
 ## Dashboard examples
 
-![](data/readme/dashboard_launch.gif)
+![](tutorials/data/readme/dashboard_launch.gif)
 
 ## Getting Involved
 
