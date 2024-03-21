@@ -35,9 +35,15 @@ Run the Dashboard directly on Binder:
 
 ![dashboard_launch](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/7bd117ba-c799-4159-a08f-9f8da977b263)
 
-![section1](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/db93ea73-5e16-4e97-aff6-3f96d91e3df8)
+![section1](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/7fa6d1dd-fc98-4251-9fda-8021846b14ae)
 
 ![section2](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/f8f09d3b-e745-4753-8f6b-17fb494a0730)
+
+![section3](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/4370a5c2-f69a-4a5b-98d9-7b6672105107)
+
+![section4](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/468524fb-bd82-434f-a4a2-604b853d9392)
+
+![section5](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/f26d26d8-6a13-4b43-a3b4-7680c6f10083)
 
 ## Getting Involved
 
