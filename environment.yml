@@ -1,0 +1,31 @@
+name: TropiDashEnv
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - birdy
+  - bqplot
+  - branca
+  - cfgrib
+  - eccodes
+  - ecmwf-opendata
+  - haversine
+  - ipywidgets
+  - ipyleaflet
+  - jupyterlab
+  - localtileserver
+  - matplotlib
+  - numpy
+  - pandas
+  - pip
+  - pdbufr
+  - rasterio
+  - requests
+  - rioxarray
+  - scipy
+  - voila
+  - xarray
+  - pip:
+      - datetime
+
+# prefix: /opt/miniconda3/envs/TropiDash
