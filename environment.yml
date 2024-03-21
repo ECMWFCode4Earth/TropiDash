@@ -1,4 +1,4 @@
-name: dashtropi
+name: tropidash
 channels:
   - conda-forge
   - defaults
