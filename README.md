@@ -29,20 +29,29 @@ Run the Dashboard directly on Binder:
 
 3. Launch the dashboard by running the [TropiDash_backbone.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/TropiDash_backbone.ipynb)
 
-## Dashboard examples
+## Dashboard Preview
 
+Get a closer look at TropiDash in action! These GIFs showcase some of the dashboard's features, demonstrating how users can interact with tropical cyclone data for insightful analysis.
+
+Launching TropiDash in Jupyterlab.
 ![voila_launch](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/40418464-992b-41cc-987c-0dc2a4d86a29)
 
+Update the forecast after selecting the cyclone to visualize and the forecast date to consider.
 ![dashboard_launch](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/7bd117ba-c799-4159-a08f-9f8da977b263)
 
+Check the average forecast track and the information at a specific location.
 ![section1](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/7fa6d1dd-fc98-4251-9fda-8021846b14ae)
 
+Look at the total precipitation and the probability of 10m wind gusts over 25 m/s associated with the cyclone.
 ![section2](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/f8f09d3b-e745-4753-8f6b-17fb494a0730)
 
+Check the coastal hazard risk over the east coast of North America.
 ![section3](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/4370a5c2-f69a-4a5b-98d9-7b6672105107)
 
+Consult simultaneously the average forecast track and the coastal hazard risk of the region on the cyclone's path.
 ![section4](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/468524fb-bd82-434f-a4a2-604b853d9392)
 
+Check the precipitation forecast in a specific point along the average forecast track.
 ![section5](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/f26d26d8-6a13-4b43-a3b4-7680c6f10083)
 
 ## Getting Involved
