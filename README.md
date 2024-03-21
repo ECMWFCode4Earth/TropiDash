@@ -29,6 +29,10 @@ Run the Dashboard directly on Binder:
 
 3. Launch the dashboard by running the [TropiDash_backbone.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/TropiDash_backbone.ipynb)
 
+## Dashboard examples
+
+![](data/readme/dashboard_launch.gif)
+
 ## Getting Involved
 
 Contributions to TropiDash are welcome! Whether it's enhancing functionality, improving documentation, or reporting issues, your input helps us make TropiDash better for everyone.

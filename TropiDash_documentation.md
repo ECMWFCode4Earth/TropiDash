@@ -11,12 +11,12 @@
     - [Data structure](#data-structure)
     - [Plot](#plot)
     - [Functions](#functions)
-  - [2. Section 2 - Atmospherical variables](#2-section-2---atmospherical-variables)
+  - [Section 2 - Atmospherical variables](#section-2---atmospherical-variables)
     - [Data sources](#data-sources-1)
     - [Data manipulation](#data-manipulation)
     - [Plot](#plot-1)
     - [Functions](#functions-1)
-  - [3. Section 3 - Impacts variables](#3-section-3---impacts-variables)
+  - [Section 3 - Impacts variables](#section-3---impacts-variables)
     - [Data sources](#data-sources-2)
     - [Plot](#plot-2)
     - [Functions](#functions-2)
@@ -69,7 +69,7 @@ Considering the information available from the presented dataset, we organize th
 
 To better understand how the data are processed and how the interactive plots are produced please refer to the python script containing the functions for this section: __[TropiDash/utils_tracks.py](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/utils_tracks.py)__.
 
-## 2. Section 2 - Atmospherical variables
+## Section 2 - Atmospherical variables
 
 This Secton's goal is to provide the user the possibility to visualize forecasts of atmospheric variables related to cyclone formation and forecasting. The variables are plotted at user-selected time steps ahead from the user-selected date. The tutorial for this Section usage is provided at [tutorials/Section2_Atmospheric_Variables_Tutorial.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/Section2_Atmospheric_Variables_Tutorial.ipynb)
 
@@ -102,7 +102,7 @@ Colorbars are provided in the top right corner to be able to interpret the data 
 
 The function used to manage the data download, manipulation and loading process as well as the plotting function are written and documented in: __[TropiDash/utils_atm.py](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/utils_atm.py)__.
 
-## 3. Section 3 - Impacts variables
+## Section 3 - Impacts variables
 
 This Section's goal is to provide the user with a plot containing variables which can help their understanding of the possible impacts the selected cyclone may generate (e.g. in terms of population impacted), as well as providing risk maps and exposition indexes. The tutorial for this Section usage is provided at [tutorials/Section3_Impact_Variables_Tutorial.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/Section3_Impact_Variables_Tutorial.ipynb)
 
@@ -157,7 +157,7 @@ introducció
 
 ### Data sources
 
-The data source of variables used in this section is ECMWF's Open Data catalog, the same explained in [Section 2](#2-section-2---atmospherical-variables). The variables displayed in this section are the accumulated precipitation, mean sea level pressure, skin temperature, and probability of wind gusts of more than 25 m/s at 10 meters.
+The data source of variables used in this section is ECMWF's Open Data catalog, the same explained in [Section 2](#section-2---atmospherical-variables). The variables displayed in this section are the accumulated precipitation, mean sea level pressure, skin temperature, and probability of wind gusts of more than 25 m/s at 10 meters.
 
 ### Plot
 
