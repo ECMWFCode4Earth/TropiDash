@@ -1,18 +1,18 @@
 # TropiDash: towards a comprehensive tropical cyclone hazard dashboard
 
 TropiDash is a visualization tool designed to empower researchers, meteorologists, and enthusiasts with the ability to analyze and interpret tropical cyclone data effectively. Utilizing web technologies and data visualization libraries, TropiDash provides a comprehensive overview of tropical cyclones, their paths, intensities, and potential impacts. The dashboard is developed as a Jupyter Notebooks allowing also less experienced user to access it without problems. 
-The project was developed as part of the ECMWF Code for Earth 2023 initiative. [Here](https://codeforearth.ecmwf.int/) you can find more details regarding Code for Earth. [Here](https://github.com/ECMWFCode4Earth/challenges_2023) you can find more details about the other projects of 2023.
+The project was developed as part of the ECMWF Code for Earth 2023 initiative. You can find more details regarding the Code for Earth initiative at their [official website](https://codeforearth.ecmwf.int/). You can find more details about the other projects of 2023 at this [GitHub repository](https://github.com/ECMWFCode4Earth/challenges_2023) .
 
 For the best experience with TropiDash, we recommend downloading and running the dashboard locally. This ensures optimal performance and access to the full range of features. Detailed instructions for setting up the dashboard on your local machine are provided in the [Getting Started section](#getting-started). Alternatively, for quick access and convenience, TropiDash is also available online via FIX THIS, allowing for immediate interaction without the need for local installation.
 
-## Repository structure
+## Repository Structure
 
 - **TropiDash folder:** Main notebook ([TropiDash_backbone.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/TropiDash_backbone.ipynb)), utility libraries, and data storage folders.
 - **Tutorials Folder:** Step-by-step guides for each dashboard section and data downloading instructions.
 - **Documentation ([TropiDash_documentation.md](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash_documentation.md)):** Detailed data source, structure, and function explanations for user support.
 - **Python Packages ([environment.yml](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/environment.yml)):** Environment file with essential packages for local deployment. 
 
-## Getting started 
+## Getting Started 
 
 1. **Install Conda:** If you don't have Conda, download and install it from the official [Conda website](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
 2. **Open Your Terminal:** Access your terminal or command prompt.
@@ -35,7 +35,6 @@ For the best experience with TropiDash, we recommend downloading and running the
 7. **Open the main Notebook:** In Jupyter Lab, navigate to the folder containing [TropiDash_backbone.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/TropiDash_backbone.ipynb) and open it.
 8. **Run the Dashboard:** Execute the dashboard by clicking on the Voilà button within Jupyter Lab. 
 <img width="413" alt="Screenshot 2024-03-21 at 19 21 43" src="https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/93672154-9a4c-4c36-b067-56b2edebef22">
-
 
 ## Dashboard Preview
 
