@@ -33,6 +33,8 @@ Run the Dashboard directly on Binder:
 
 ![](tutorials/data/readme/dashboard_launch.gif)
 
+![dashboard_launch](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/89529eea-5168-4765-9148-40394171484f)
+
 ## Getting Involved
 
 Contributions to TropiDash are welcome! Whether it's enhancing functionality, improving documentation, or reporting issues, your input helps us make TropiDash better for everyone.
