@@ -31,9 +31,7 @@ Run the Dashboard directly on Binder:
 
 ## Dashboard examples
 
-![](tutorials/data/readme/dashboard_launch.gif)
 
-![dashboard_launch](https://github.com/ECMWFCode4Earth/TropiDash/assets/54897571/89529eea-5168-4765-9148-40394171484f)
 
 ## Getting Involved
 
