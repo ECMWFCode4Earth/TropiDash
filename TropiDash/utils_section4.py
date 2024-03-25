@@ -27,10 +27,9 @@ def plot_section4(vardict, step, coord, stepsdict, rp_coh, rp_cyh, cyclonelayers
     stepsdict: dict
         Dictionary containing the steps codes needed for each variable. The standard step format is under "base".
     rp_coh:
-
+        Return period of the coastal hazard layer to be added
     rp_cyh:
-        
-    
+        Return period of the cyclone hazard layer to be added
     cyclonelayers: 
         Layers of cyclone related variables
         
@@ -86,13 +85,10 @@ def plot_section4(vardict, step, coord, stepsdict, rp_coh, rp_cyh, cyclonelayers
                                      )
             m.add_layer(wind_layer)
     
-    
-    
     # Add impact layers
     #Download
     dwnl_coastalhaz(rp_coh)
     dwnl_cyclonehaz(rp_cyh)
-    dwnl_riskidx()
     #Load
     coh = load_coastalhaz(rp_coh, open = True)
     cyh = load_cyclonehaz(rp_cyh, open = True)
@@ -100,7 +96,6 @@ def plot_section4(vardict, step, coord, stepsdict, rp_coh, rp_cyh, cyclonelayers
     m = plot_coastalhaz(coh, rp_coh, m = m)
     m = plot_cyclonehaz(cyh, rp_cyh, m = m)
     m = plot_poplayer(m = m)
-    # m = plot_riskidx(["Tsunamis", "Coastal_floods", "Sea_level_rise"], m = m)
 
     # Add cyclone layers
     for layer in cyclonelayers:
