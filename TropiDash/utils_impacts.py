@@ -548,21 +548,14 @@ def impacts_plot(rp_coh, rp_cyh, coord):
     #Download
     dwnl_coastalhaz(rp_coh)
     dwnl_cyclonehaz(rp_cyh)
-    dwnl_riskidx()
 
     #Load
     coh = load_coastalhaz(rp_coh, open = True)
     cyh = load_cyclonehaz(rp_cyh, open = True)
 
-    display(widgets.HTML(value = "<b>Legend</b>")) 
-    display(widgets.HTML(value = "Tsunamis: Normalized Annually Averaged Persons Exposed To Severe Intensity (Coastal Run-Up Height 3.0 m or higher)"))
-    display(widgets.HTML(value = "Coastal floods: Normalized Annually Averaged Persons Exposed To Severe Intensity (Inundation Height 1.0 m or higher)"))
-    display(widgets.HTML(value = "Sea level rise: Normalized Persons Potentially Exposed To Projected Sea Level Rise (Inundation Height 1.0 m or below)"))
-
     #Create the plot
     m = Map(basemap = basemaps.Esri.WorldTopoMap, center = coord, zoom = 3)
     m = plot_poplayer(m = m)
-    m = plot_riskidx(["Tsunamis", "Coastal_floods", "Sea_level_rise"], m = m)
     m = plot_coastalhaz(coh, rp_coh, m = m)
     m = plot_cyclonehaz(cyh, rp_cyh, m = m)
     m.add_control(LayersControl())
