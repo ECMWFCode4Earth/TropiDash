@@ -1,17 +1,13 @@
-import ipywidgets as widgets
-import pandas as pd
-
-import ipyleaflet
-
-import ipywidgets
-import xarray as xr
-from scipy.spatial.distance import cdist
-
 from bqplot import Lines, Figure, LinearScale, Axis, DateScale
 import bqplot
 from datetime import datetime
+import ipyleaflet
+import ipywidgets as widgets
+from scipy.spatial.distance import cdist
+import pandas as pd
+import xarray as xr
 
-### FUNCTIONS DEF
+#%% FUNCTIONS DEF
 def closest_point(point, points):
     """ 
         Find closest point from a list of points. 
@@ -113,8 +109,6 @@ def get_allvars_allpoints(date_to_download, steps_to_download, steps_to_download
         df_datapoints =  pd.concat(df_temp, axis = 0)
         out[var] = df_datapoints
     return(out)
-
-
 
 def get_df_pos(data_allpoints, pos, steps_to_download):
     """
@@ -231,10 +225,7 @@ def get_initial_plot(data_allpoints, initial_date, initial_latlon, steps_to_down
 
     return p1, p2, p3, p4
     
-
-    
-    
-# CREATE MAP 
+#%% CREATE MAP
 
 def map_s5(initial_latlon, initial_date, avg_track, steps_to_download, steps_to_download2):
     '''Input: 
@@ -263,8 +254,7 @@ def map_s5(initial_latlon, initial_date, avg_track, steps_to_download, steps_to_
 
     p1, p2, p3, p4 = get_initial_plot(data_allpoints, initial_date, initial_latlon, steps_to_download)
     
-    
-    item_layout = ipywidgets.Layout(overflow_y='scroll', width='350px', height='350px',
+    item_layout = widgets.Layout(overflow_y='scroll', width='350px', height='350px',
                                flex_flow='column', display='block')
     main_figure = widgets.Box(children=[p1, p2, p3, p4], layout=item_layout,  width='350px', height='350px')
 
