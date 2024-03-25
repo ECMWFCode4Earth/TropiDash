@@ -112,9 +112,9 @@ Data for this Section is downloaded from the following sources:
 - Coastal hazard for different return periods: https://datacatalog.worldbank.org/search/dataset/0038579/Global-coastal-flood-hazard
 - Cyclone hazard for different return periods: https://datacatalog.worldbank.org/search/dataset/0038577/Global-cyclone-hazard
 - Population count (1 x 1 km cells): https://hub.worldpop.org/geodata/summary?id=24777
-- Exposition Indexes: https://data.humdata.org/dataset/1efb6ee7-051a-440f-a2cf-e652fecccf73
+<!-- - Exposition Indexes: https://data.humdata.org/dataset/1efb6ee7-051a-440f-a2cf-e652fecccf73 -->
 
-Population count raster was resampled using QGIS, then passed through a function explained in [tutorials/X1_Download_population_data.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/X1_Download_population_data.ipynb)
+Population count raster was resampled to pixels of 10x10 km using QGIS, then passed through a function explained in [tutorials/X1_Download_population_data.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/X1_Download_population_data.ipynb) ("Fix nodata issue" section).
 
 ### Plot
 
@@ -141,19 +141,25 @@ To make the user able to visualize easier cyclone, atmospheric and impact variab
 - Population count
 - Cyclone and coastal hazard
 
-The tutorial for this Section usage is provided at [tutorials/Section3_Impact_Variables_Tutorial.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/Section4_Joint_Visualization.ipynb)
+The tutorial for this Section usage is provided at [tutorials/Section4_Joint_Visualization_tutorial.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/Section4_Joint_Visualization_tutorial.ipynb)
 
-## Data sources
+### Data sources
 
 The sources for cylcone variables are listed in Section 1, the ones for atmospheric variables are listed in Section 2, and the ones for impacts variables are lister in Section 3.
 
-## Functions
+### Plot
 
-The plotting function is provided at __[TropiDashutils_section4.py](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/utils_section4.py)__.
+The plot is an interactive map deployed through [`ipyleaflet`](https://ipyleaflet.readthedocs.io/en/latest/index.html), which shows a combination of the layers shown in the previous Sections, so cyclone tracks and strike probability as well as atmospheric and hazard variables. 
+
+### Functions
+
+The plotting function is provided at __[TropiDashutils_section4.py](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/utils_section4.py)__. It makes use of functions defined for the other Sections.
 
 ## Section 5 - Point-Wise Temporal Evolution of Atmospheric Variable
 
-introducció
+Section 5 enables the possibility to plot the evolution of a forectasted value (accumulated precipitation, mean sea level pressure, skin temperature, and probability of wind gusts of more than 25 m/s at 10 m) in a user-specified point on the map.
+
+The tutorial for this Section usage is provided at [tutorials/Section5_Temporal_Evolution_Tutorial.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/Section4_Temporal_Evolution_Tutorial.ipynb)
 
 ### Data sources
 
@@ -161,7 +167,7 @@ The data source of variables used in this section is ECMWF's Open Data catalog, 
 
 ### Plot
 
-In this section, users can find a background map, a marker and the temporal evolution on the marker position of the accumulated precipitation, mean sea level pressure, skin temperature, and probability of wind gusts of more than 25m/s at 10m, from the first day of the selected cyclone until the last one. The red-lashed line represents the average track of the tracks given by the ensembles. The plots are automatically uploaded every time the user moves the pointer location. Please notice that it may take a few seconds to upload the plots. The first variable displayed is the daily accumulated precipitation and the other ones appear on scrolling down on the white box.
+In this section, users can find a background map, a marker and the temporal evolution on the marker position of the accumulated precipitation, mean sea level pressure, skin temperature, and probability of wind gusts of more than 25 m/s at 10 m, from the first day of the selected cyclone until the last one. The red-lashed line represents the average track of the tracks given by the ensembles. The plots are automatically uploaded every time the user moves the pointer location. Please notice that it may take a few seconds to upload the plots. The first variable displayed is the daily accumulated precipitation and the other ones appear on scrolling down on the white box. The interactive map is deployed through [`ipyleaflet`](https://ipyleaflet.readthedocs.io/en/latest/index.html).
 
 ### Functions
 To better understand how the data are processed and how the interactive plots are produced please refer to the python script containing the functions for this section: __[TropiDash/utils_TemporalEvolution.py](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/utils_TemporalEvolution.py)__.
