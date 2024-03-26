@@ -7,6 +7,7 @@ dependencies:
   - bqplot=0.12.40
   - branca=0.6.0
   - cfgrib=0.9.10.4
+  - flask=2.3.3
   - eccodes=2.31.0
   - ecmwf-opendata=0.3.3
   - haversine=2.8.0
@@ -27,4 +28,3 @@ dependencies:
   - xarray=2023.8.0
   - pip:
       - datetime==5.5
-      - Flask-Scaffold
