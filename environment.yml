@@ -27,3 +27,4 @@ dependencies:
   - xarray=2023.8.0
   - pip:
       - datetime==5.5
+      - Flask-RESTful==0.3.9
