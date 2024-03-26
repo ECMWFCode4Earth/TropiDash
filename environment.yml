@@ -27,4 +27,4 @@ dependencies:
   - xarray=2023.8.0
   - pip:
       - datetime==5.5
-      - Flask-Scaffold==0.5.1
+      - Flask-Scaffold
