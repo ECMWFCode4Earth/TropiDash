@@ -10,6 +10,7 @@ import ipywidgets as widgets
 from localtileserver import get_leaflet_tile_layer, TileClient
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 import pandas as pd
 import rasterio
@@ -269,7 +270,7 @@ def load_poplayer(path = None, returnpath = True):
     r: rasterio.DatasetReader object or str
     """
     if path is None:
-        path = "data/impacts/ppp_2020_1km_Aggregated_resampled_10km_sum_clipped_3402na_fix.tif"
+        path = "data/impacts/ppp_2020_resampled_10km_log.tif"
     if returnpath:
         r = path
     else:
@@ -295,13 +296,13 @@ def plot_poplayer(addlayer = True, coord = None, m = None):
     palette = [(255, 255, 229),(217, 235, 213),(180, 216, 197),(142, 197, 181),(105, 177, 165),(67, 158, 149),(44, 135, 127),(29, 110, 100),(14, 85, 74),(0, 60, 48)]
     palettehex = [rgb_to_hex(x) for x in palette]
     with rasterio.open(load_poplayer(returnpath = True)) as r:
-        minv = "%.2f" % round(r.read(1).ravel().min(), 1)
-        maxv = "%.2f" % round(r.read(1).ravel()[r.read(1).ravel()<r.nodata].max(), 1)
+        minv = "%.2f" % 0
+        maxv = "%.2f" % round(np.exp(r.read(1).ravel().max())/100, 1) #approximate density (pop/km2)
         if addlayer:
             client = TileClient(r)
-            t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km (2020)", opacity = 0.7, palette = palettehex, nodata = r.nodata)
+            t = get_leaflet_tile_layer(client, name = "Population density - n° of people/sq. km (2020)", opacity = 0.7, palette = palettehex, nodata = r.nodata)
             cmap_control = ColormapControl(
-                                            caption = "Population count - 10km x 10km (2020)",
+                                            caption = "Population density - n° of people/sq. km (2020)",
                                             colormap = bc.StepColormap(palettehex),
                                             value_min = float(minv),
                                             value_max = float(maxv),
@@ -313,9 +314,9 @@ def plot_poplayer(addlayer = True, coord = None, m = None):
         else:
             m = Map(center = coord, zoom = 3)
             client = TileClient(r)
-            t = get_leaflet_tile_layer(client, name = "Population count - 10km x 10km (2020)", opacity = 0.7, palette = palettehex, nodata = r.nodata)
+            t = get_leaflet_tile_layer(client, name = "Population density - n° of people/sq. km (2020)", opacity = 0.7, palette = palettehex, nodata = r.nodata)
             cmap_control = ColormapControl(
-                                            caption = "Population count - 10km x 10km (2020)",
+                                            caption = "Population density - n° of people/sq. km (2020)",
                                             colormap = bc.StepColormap(palettehex),
                                             value_min = float(minv),
                                             value_max = float(maxv),
