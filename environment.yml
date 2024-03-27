@@ -13,6 +13,7 @@ dependencies:
   - haversine=2.8.0
   - ipywidgets=8.1.0
   - ipyleaflet=0.17.3
+  - ipympl=0.9.3
   - jupyterlab=4.0.5
   - localtileserver=0.7.1
   - matplotlib=3.7.1
