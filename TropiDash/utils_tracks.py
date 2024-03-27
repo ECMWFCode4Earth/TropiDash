@@ -104,21 +104,25 @@ def create_storms_df(start_date):
             df_storms = df_storms[df_storms.stormIdentifier != cyclone]
     
     df_storms.reset_index(inplace=True, drop=True)
-    
-    # Build the dataframe with the timeperiod column
-    timeperiod = []
-    start_date = datetime(df_storms.year[0], df_storms.month[0], df_storms.day[0], df_storms.hour[0])
-    for cyclone in df_storms.stormIdentifier.unique():
-        df_cyclone = df_storms[df_storms.stormIdentifier == cyclone]
-        df_cyclone.reset_index(inplace=True, drop=True)
-        members = df_cyclone.ensembleMemberNumber.unique()
-        for member in members:
-            df_track = df_cyclone[df_cyclone.ensembleMemberNumber == member]
-            for i in range(len(df_track)):
-                timeperiod.append(6 * (i+1))
-    
-    # Add the timePeriod column to the storms dataframe 
-    df_storms["timePeriod"] = timeperiod
+
+    # Check if the dataframe is empty return the empty dataframe
+    if df_storms.empty:
+        pass
+    else:
+        # Build the dataframe with the timeperiod column
+        timeperiod = []
+        start_date = datetime(df_storms.year[0], df_storms.month[0], df_storms.day[0], df_storms.hour[0])
+        for cyclone in df_storms.stormIdentifier.unique():
+            df_cyclone = df_storms[df_storms.stormIdentifier == cyclone]
+            df_cyclone.reset_index(inplace=True, drop=True)
+            members = df_cyclone.ensembleMemberNumber.unique()
+            for member in members:
+                df_track = df_cyclone[df_cyclone.ensembleMemberNumber == member]
+                for i in range(len(df_track)):
+                    timeperiod.append(6 * (i+1))
+        
+        # Add the timePeriod column to the storms dataframe 
+        df_storms["timePeriod"] = timeperiod
 
     return df_storms
 
