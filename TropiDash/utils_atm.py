@@ -20,6 +20,58 @@ import xarray as xr
 
 #%% Download
 
+def update_dwnl_atmdata(variables, stepsdict, stdate = 0, source = "azure"):
+    fnames = []
+    if stdate == 0:
+        stdate = datetime.today().strftime('%Y%m%d')
+    else:
+        stdate = stdate.strftime('%Y%m%d')
+    for var in variables:
+        if var == "10fgg25":
+            steps = stepsdict["10fgg25"]
+        else:
+            steps = stepsdict["base"]
+        if var == "10fgg25":
+                    rqt = {
+                        "date": stdate,     #date start of the forecast
+                        "time": 0,          #time start of the forecast, can be 0 or 12
+                        "step": steps,      #step of the forecast: 1, 2, 5, 10 days
+                        "stream": "enfo",
+                        "type": "ep",
+                        "param": var,
+                    }
+        elif var == "wind":
+            rqt = {
+                "date": stdate, #date start of the forecast
+                "time": 0,      #time start of the forecast, can be 0 or 12
+                "step": steps,      #step of the forecast: 1, 2, 5, 10 days
+                "stream": "oper",
+                "type": "fc",
+                "levtype": "sfc",
+                "param": ["10u", "10v"],
+            }
+        else:
+            rqt = {
+                "date": stdate, #date start of the forecast
+                "time": 0,      #time start of the forecast, can be 0 or 12
+                "step": steps,      #step of the forecast: 1, 2, 5, 10 days
+                "stream": "oper",
+                "type": "fc",
+                "levtype": "sfc",
+                "param": var,
+            }
+        client = Client(source = source, beta = True)
+        filename = f"data/atm/test_{var}.grib"
+        if not os.path.exists(filename):
+            client.retrieve(
+                request = rqt,
+                target = filename
+            );
+        fnames.append(filename)
+    return fnames
+    
+
+
 def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure", pr = False):
     """
     Function which downloads forecasts from today for the provided steps
