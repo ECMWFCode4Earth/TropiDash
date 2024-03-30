@@ -88,7 +88,9 @@ def get_allvars_allpoints(date_to_download, steps_to_download, steps_to_download
                     "levtype": "sfc",
                     "param": var,
                 }
-   
+
+#change the name to use just step 0
+
             filename = f"data/atm/{var}_{rqt['date']}_time{rqt['time']}_step{rqt['step']}_{rqt['stream']}_{rqt['type']}.grib"     
             ds = xr.open_dataset(filename, engine="cfgrib")
 
