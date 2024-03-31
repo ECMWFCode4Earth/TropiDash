@@ -29,7 +29,7 @@ def dwnl_atmdata(variables, stepsdict, stdate = 0, source = "azure", pr = True):
         Codes can be found here: https://github.com/ecmwf/ecmwf-opendata/tree/main#parameters-and-levels
     stepsdict: dict
         Dictionary containing the steps codes needed for each variable. The standard step format is under "base".
-    stdate: int or str, optional
+    stdate: int (0/1/-1) or str (YYYYMMDD), optional
         Integer or string defining the starting date to download the data from. Default is 0, meaning
         the function will download the forecasts from the current day.
     source: str, optional
@@ -174,6 +174,7 @@ def gen_raster(var, filename, delete = False, pr = False):
                 outf.to_netcdf(outpath)
         pathlst.append(outpath)
     f.close()
+    os.remove(f"{filename}.923a8.idx")
     if delete:
         os.remove(filename)
     return(pathlst)
