@@ -82,7 +82,7 @@ def dwnl_atmdata(variables, stepsdict, stdate = 0, source = "azure", pr = True):
                 "levtype": "sfc",
                 "param": var,
             }
-        client = Client(source = source, beta = True)
+        client = Client(source = source, preserve_request_order = True)
         try:
             filename = f"data/atm/{rqt['date']}/{var}_{rqt['date']}_time{rqt['time']}_steps{rqt['step'][0]}-{rqt['step'][-1]}_{rqt['stream']}_{rqt['type']}.grib"
             if not os.path.exists(filename):

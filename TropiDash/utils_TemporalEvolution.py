@@ -66,8 +66,13 @@ def get_allvars_allpoints(date_to_download, steps_to_download, steps_to_download
             list_steps_to_download = steps_to_download2
         else: 
             list_steps_to_download = steps_to_download
+
+        #for ste in range(0, len(list_steps_to_download))
         df_temp = {}
         for step in list_steps_to_download:
+
+
+            #rimuovere queste parti, sostituirle con costruzione nome per wind
             if var == "10fgg25":
                 rqt = {
                     "date": date_to_download, #date start of the forecast
@@ -89,7 +94,7 @@ def get_allvars_allpoints(date_to_download, steps_to_download, steps_to_download
                     "param": var,
                 }
 
-#change the name to use just step 0
+            #change the name to use just step 0
 
             filename = f"data/atm/{var}_{rqt['date']}_time{rqt['time']}_step{rqt['step']}_{rqt['stream']}_{rqt['type']}.grib"     
             ds = xr.open_dataset(filename, engine="cfgrib")
