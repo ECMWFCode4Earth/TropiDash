@@ -92,9 +92,10 @@ def get_allvars_allpoints(date_to_download, stepsdict, variables):
             else:
                 vals = df[var]
             # DATAFRAME OF ALL POINTS FROM MAP
-            df_datapoints = pd.DataFrame({'Lat': lats, 'Lon':lons, 'Value': vals})
+            df_datapoints = pd.DataFrame({'Lat': lats, 'Lon': lons, 'Value': vals})
             df_datapoints['point'] = [(x, y) for x,y in zip(df_datapoints['Lat'], df_datapoints['Lon'])]
-            df_temp[str(step)] = df_datapoints
+            # df_temp[str(step)] = df_datapoints
+            df_temp[str(stepsdict['base'][step])] = df_datapoints
         df_datapoints =  pd.concat(df_temp, axis = 0)
         out[var] = df_datapoints
         ds.close() #close the raster dataset once plotted
