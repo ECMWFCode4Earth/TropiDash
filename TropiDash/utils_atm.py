@@ -20,7 +20,7 @@ import xarray as xr
 
 #%% Download
 
-def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure", pr = False):
+def dwnl_atmdata(variables, stepsdict, stdate = 0, source = "azure", pr = True):
     """
     Function which downloads forecasts from today for the provided steps
 
@@ -29,13 +29,13 @@ def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure", pr = F
         Codes can be found here: https://github.com/ecmwf/ecmwf-opendata/tree/main#parameters-and-levels
     stepsdict: dict
         Dictionary containing the steps codes needed for each variable. The standard step format is under "base".
-    stdate: int or str, optional
+    stdate: int (0/1/-1) or str (YYYYMMDD), optional
         Integer or string defining the starting date to download the data from. Default is 0, meaning
         the function will download the forecasts from the current day.
     source: str, optional
         Parameter needed for ecmwf.opendata Client class. Can be "azure" or "ecmwf". Default: azure
     pr: bool, optional
-        If True, prints a message. Default is False
+        If True, prints a message. Default is True
 
     Returns:
     fnames: list of str
@@ -46,66 +46,70 @@ def dwnl_atmdata_step(variables, stepsdict, stdate = 0, source = "azure", pr = F
         stdate = datetime.today().strftime('%Y%m%d')
     else:
         stdate = stdate.strftime('%Y%m%d')
+    if not os.path.exists(f'data/atm/{stdate}'):
+        os.mkdir(f'data/atm/{stdate}')
     for var in variables:
         if var == "10fgg25":
             steps = stepsdict["10fgg25"]
         else:
             steps = stepsdict["base"]
-        for s in steps:
-            if var == "10fgg25":
-                rqt = {
-                    "date": stdate, #date start of the forecast
-                    "time": 0,      #time start of the forecast, can be 0 or 12
-                    "step": s,      #step of the forecast: 1, 2, 5, 10 days
-                    "stream": "enfo",
-                    "type": "ep",
-                    "param": var,
-                }
-            elif var == "wind":
-                rqt = {
-                    "date": stdate, #date start of the forecast
-                    "time": 0,      #time start of the forecast, can be 0 or 12
-                    "step": s,      #step of the forecast: 1, 2, 5, 10 days
-                    "stream": "oper",
-                    "type": "fc",
-                    "levtype": "sfc",
-                    "param": ["10u", "10v"],
-                }
-            else:
-                rqt = {
-                    "date": stdate, #date start of the forecast
-                    "time": 0,      #time start of the forecast, can be 0 or 12
-                    "step": s,      #step of the forecast: 1, 2, 5, 10 days
-                    "stream": "oper",
-                    "type": "fc",
-                    "levtype": "sfc",
-                    "param": var,
-                }
-            client = Client(source = source, beta = True)
-            try:
-                filename = f"data/atm/{var}_{rqt['date']}_time{rqt['time']}_step{rqt['step']}_{rqt['stream']}_{rqt['type']}.grib"
-                if not os.path.exists(filename):
-                    client.retrieve(
-                        request = rqt,
-                        target = filename
-                    );
-            except:
-                # Usually early in the morning the forecast of the current day is not available
-                # > get the forecast of the day before
-                rqt['date'] = datetime.strptime(rqt['date'], '%Y%m%d') - timedelta(days = 1)
-                filename = f"data/atm/{var}_{rqt['date'].strftime('%Y%m%d')}_time{rqt['time']}_step{rqt['step']}_{rqt['stream']}_{rqt['type']}.grib"
-                if not os.path.exists(filename):
-                    client.retrieve(
-                        request = rqt,
-                        target = filename
-                    );
-                if pr: print(f"Today's forecast not available, downloaded yesterday's forecast: {rqt['date'].strftime('%d/%b/%Y')}")       
-            fnames.append(filename)
+        if var == "10fgg25":
+                    rqt = {
+                        "date": stdate,     #date start of the forecast
+                        "time": 0,          #time start of the forecast, can be 0 or 12
+                        "step": steps,      #step of the forecast: 1, 2, 5, 10 days
+                        "stream": "enfo",
+                        "type": "ep",
+                        "param": var,
+                    }
+        elif var == "wind":
+            rqt = {
+                "date": stdate,     #date start of the forecast
+                "time": 0,          #time start of the forecast, can be 0 or 12
+                "step": steps,      #step of the forecast: 1, 2, 5, 10 days
+                "stream": "oper",
+                "type": "fc",
+                "levtype": "sfc",
+                "param": ["10u", "10v"],
+            }
+        else:
+            rqt = {
+                "date": stdate,     #date start of the forecast
+                "time": 0,          #time start of the forecast, can be 0 or 12
+                "step": steps,      #step of the forecast: 1, 2, 5, 10 days
+                "stream": "oper",
+                "type": "fc",
+                "levtype": "sfc",
+                "param": var,
+            }
+        client = Client(source = source, preserve_request_order = True)
+        try:
+            filename = f"data/atm/{rqt['date']}/{var}_{rqt['date']}_time{rqt['time']}_steps{rqt['step'][0]}-{rqt['step'][-1]}_{rqt['stream']}_{rqt['type']}.grib"
+            if not os.path.exists(filename):
+                client.retrieve(
+                    request = rqt,
+                    target = filename
+                );
+        except:
+            # Usually early in the morning the forecast of the current day is not available
+            # > get the forecast of the day before
+            rqt['date'] = datetime.strptime(rqt['date'], '%Y%m%d') - timedelta(days = 1)
+            tooldate = rqt['date'].strftime('%Y%m%d')
+            filename = f"data/atm/{tooldate}/{var}_{tooldate}_steps{rqt['step'][0]}-{rqt['step'][-1]}_{rqt['stream']}_{rqt['type']}.grib"
+            if not os.path.exists(filename):
+                if not os.path.exists(f"data/atm/{tooldate}"):
+                    os.mkdir(f"data/atm/{tooldate}")
+                client.retrieve(
+                    request = rqt,
+                    target = filename
+                );
+            if pr: print(f"Today's forecast not available, downloaded yesterday's forecast: {rqt['date'].strftime('%d/%b/%Y')}")       
+        fnames.append(filename)
     return(fnames)
 
 #%% Load
 
-def load_atmdata(varlst, fnames, open = False, pr = False):
+def load_atmdata(varlst, fnames, pr = False):
     """
     Loads the downloaded files
 
@@ -113,8 +117,6 @@ def load_atmdata(varlst, fnames, open = False, pr = False):
         List containing strings of the variables to load
     fnames: str, list of str
         List containing the paths to downloaded data
-    open: bool, optional
-        If True, it will open all the files. Default is False
     pr: bool, optional
         If True, prints the variables which are being loaded. Default is False
     
@@ -126,22 +128,8 @@ def load_atmdata(varlst, fnames, open = False, pr = False):
     """
     vardict = {}
     for var in varlst:
-        lst = []
-        tool = [x for x in fnames if var in x] #filenames containing the variable
-        for filename in tool:
-            if var != "wind":
-                if open:
-                    lst.append(rasterio.open(gen_raster(var, filename)))
-                else:
-                    lst.append(gen_raster(var, filename))
-            else:
-                if open:
-                    nc = xr.open_dataset(gen_raster(var, filename))
-                    nc = nc.assign_attrs(name = filename)
-                    lst.append(nc)
-                else:
-                    lst.append(gen_raster(var, filename))
-        vardict[f"{var}"] = lst
+        tool = [x for x in fnames if var in x] #filename containing the variable
+        vardict[f"{var}"] = gen_raster(var, tool[0])
         if pr: print(var, " loaded")
     return(vardict)
 
@@ -162,27 +150,34 @@ def gen_raster(var, filename, delete = False, pr = False):
     tiffpath: str
         Path to the created .tiff file
     """
+    fix = "_".join(filename.split("_")[0:2] + filename.split("_")[3:])
     if var != "wind":
-        tiffpath = ".".join([filename.split(".")[0], "tiff"])
+        fix = ".".join([fix.split(".")[0], "tiff"])
     else:
-        tiffpath = ".".join([filename.split(".")[0], "nc"])
-    if not os.path.exists(tiffpath):
-        if pr: print(var, " conversion")
-        f = xr.load_dataset(filename, engine = "cfgrib")
-        if var == "msl":
-            f["msl"] = f.msl/100 #hPa
-        if var == "skt":
-            f["skt"] = f["skt"] - 273.15 #Celsius degrees
-        f = f.rio.write_crs("epsg:4326")
-        if var != "wind":
-            f = f.rio.reproject("epsg:3857") #to avoid errors when creating layers with get_leaflet_tile_layer
-            f.rio.to_raster(tiffpath)
-        else:
-            f.to_netcdf(tiffpath)
-        f.close()
-        if delete:
-            os.remove(filename)
-    return(tiffpath)
+        fix = ".".join([fix.split(".")[0], "nc"])
+    if pr: print(var, " conversion")
+    f = xr.load_dataset(filename, engine = "cfgrib")
+    pathlst = []
+    for step in range(0, len(f.step)):
+        outpath = ".".join(["_".join([fix.split(".")[0], f"step{step}"]), fix.split(".")[1]])
+        if not os.path.exists(outpath):
+            outf = f.isel(step = step)
+            if var == "msl":
+                outf["msl"] = outf.msl/100 #hPa
+            if var == "skt":
+                outf["skt"] = outf["skt"] - 273.15 #Celsius degrees
+            outf = outf.rio.write_crs("epsg:4326")
+            if var != "wind":
+                outf = outf.rio.reproject("epsg:3857") #to avoid errors when creating layers with get_leaflet_tile_layer
+                outf.rio.to_raster(outpath)
+            else:
+                outf.to_netcdf(outpath)
+        pathlst.append(outpath)
+    f.close()
+    os.remove(f"{filename}.923a8.idx")
+    if delete:
+        os.remove(filename)
+    return(pathlst)
 
 #%% Plot
 
@@ -191,7 +186,7 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
     Plots the atmospheric variables for a specified forecast step
 
     vardict: dict
-        Dictionary containing the rasters uploaded trhough load_atmdata.
+        Dictionary containing the path to the rasters, obtained through load_atmdata.
         Returned by load_atmdata
     step: str
         String returned from the widget used to select the forecast period
@@ -257,28 +252,23 @@ def plot_atmdata_step(vardict, step, coord, stepsdict):
     m.layout.height = "700px"
     display(m)
 
-def sel_forecast(var, step, stepsdict):
+def sel_forecast(var, str, stepsdict):
     """
     Returns the step used to compose the filename of the specified variable
 
-    var: str
-        Name of the variable which is being plotted
-    step: str
+    str: str
         String returned from the widget used to select the forecast period
     stepsdict: dict
         Dictionary containing the steps codes needed for each variable. The standard step format is under "base".
     
     Returns:
     out: int or str
-        Forecast step. Used to compose the filename of the variable to be read
+        Forecast step, from 0 to 3. Used to extract the selected timeframe from the downloaded file
     """
-    if var == "10fgg25":
-        steps = stepsdict["10fgg25"]
-    else:
-        steps = stepsdict["base"]
-    tooldict = dict(zip([f"{i}h from selected date" for i in stepsdict["base"]], [i for i in range(len(stepsdict["base"]))]))
-    s = tooldict[step]
-    out = steps[s]
+    toollist = [f"{i}h from selected date" for i in stepsdict["base"]]
+    out = toollist.index(str)
+    if var == "wind" and out != 0:
+        out = out - 1
     return(out)
 
 def get_palette(var):

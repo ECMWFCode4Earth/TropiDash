@@ -1,10 +1,13 @@
+# -*- coding: utf-8 -*-
+# isort: off
+
 from bqplot import Lines, Figure, LinearScale, Axis, DateScale
 import bqplot
 from datetime import datetime
 import ipyleaflet
 import ipywidgets as widgets
-from scipy.spatial.distance import cdist
 import pandas as pd
+from scipy.spatial.distance import cdist
 import xarray as xr
 
 #%% FUNCTIONS DEF
@@ -50,64 +53,52 @@ def handle_move(data_allpoints, steps_to_download):
 
     return on_move
 
-def get_allvars_allpoints(date_to_download, steps_to_download, steps_to_download2):
+def get_allvars_allpoints(date_to_download, stepsdict, variables):
     """
-        Read grib file of each variable; transform it to pandas dataframe;
-            store dataframes into a dictionary with the key being the variable names. 
-        Input: 
-            - date_to_download: string (YYYYMMDD) or integer (0/1/-1) indicating the 
-                starting date of the forecast
-        Output: 
-            - out: dictionary containing the pandas dataframe of each variable
+    Read grib file of each variable; transform it to pandas dataframe;
+    store dataframes into a dictionary with the key being the variable names. 
+
+    date_to_download: string (YYYYMMDD)
+        String indicating the starting date of the forecast
+    variables: list of str
+        List containing the codes of the variables to be downloaded.
+        Codes can be found here: https://github.com/ecmwf/ecmwf-opendata/tree/main#parameters-and-levels
+    stepsdict: dict
+        Dictionary containing the steps codes needed for each variable. The standard step format is under "base".
+    
+    Returns: 
+    out: dict
+        Dictionary containing the pandas dataframe of each variable
     """
     out = {}
-    for var in ['tp', 'msl', 'skt', '10fgg25']:
+    for var in variables:
         if var == "10fgg25":
-            list_steps_to_download = steps_to_download2
-        else: 
-            list_steps_to_download = steps_to_download
+            steps = stepsdict["10fgg25"]
+            nsteps = len(steps) - 1
+            filename = f"data/atm/{date_to_download}/{var}_{date_to_download}_time0_steps{steps[0]}-{steps[-1]}_enfo_ep.grib"
+        else:
+            steps = stepsdict["base"]
+            nsteps = len(steps)
+            filename = f"data/atm/{date_to_download}/{var}_{date_to_download}_time0_steps{steps[0]}-{steps[-1]}_oper_fc.grib" 
+        ds = xr.open_dataset(filename, engine="cfgrib")
         df_temp = {}
-        for step in list_steps_to_download:
-            if var == "10fgg25":
-                rqt = {
-                    "date": date_to_download, #date start of the forecast
-                    "time": 0,      #time start of the forecast, can be 0 or 12
-                    "step": step,      #step of the forecast: 1, 2, 5, 10 days
-                    "stream": "enfo",
-                    "type": "ep",
-                    "param": var,
-                }
-
-            else:
-                rqt = {
-                    "date": date_to_download, #date start of the forecast
-                    "time": 0,      #time start of the forecast, can be 0 or 12
-                    "step": step,      #step of the forecast: 1, 2, 5, 10 days
-                    "stream": "oper",
-                    "type": "fc",
-                    "levtype": "sfc",
-                    "param": var,
-                }
-   
-            filename = f"data/atm/{var}_{rqt['date']}_time{rqt['time']}_step{rqt['step']}_{rqt['stream']}_{rqt['type']}.grib"     
-            ds = xr.open_dataset(filename, engine="cfgrib")
-
-            df = ds.to_dataframe()
+        for step in range(0, nsteps):            
+            #extract the dataframe corresponding to the desired step
+            df = ds.isel(step = step).to_dataframe()
             lats = df.index.get_level_values("latitude")
             lons = df.index.get_level_values("longitude")
-        
             if var == '10fgg25':
                 vals = df['fg10g25']
             else:
                 vals = df[var]
             # DATAFRAME OF ALL POINTS FROM MAP
-            df_datapoints = pd.DataFrame({'Lat': lats, 'Lon':lons, 'Value': vals})
+            df_datapoints = pd.DataFrame({'Lat': lats, 'Lon': lons, 'Value': vals})
             df_datapoints['point'] = [(x, y) for x,y in zip(df_datapoints['Lat'], df_datapoints['Lon'])]
-            df_temp[str(step)] = df_datapoints
-            ds.close() #close the raster dataset once plotted
-
+            # df_temp[str(step)] = df_datapoints
+            df_temp[str(stepsdict['base'][step])] = df_datapoints
         df_datapoints =  pd.concat(df_temp, axis = 0)
         out[var] = df_datapoints
+        ds.close() #close the raster dataset once plotted
     return(out)
 
 def get_df_pos(data_allpoints, pos, steps_to_download):
@@ -227,7 +218,7 @@ def get_initial_plot(data_allpoints, initial_date, initial_latlon, steps_to_down
     
 #%% CREATE MAP
 
-def map_s5(initial_latlon, initial_date, avg_track, steps_to_download, steps_to_download2):
+def map_s5(initial_latlon, initial_date, avg_track, stepsdict, variables):
     '''Input: 
     - initial_date, final_date: string of the date in format %Y%m%d
     Output: map
@@ -241,7 +232,7 @@ def map_s5(initial_latlon, initial_date, avg_track, steps_to_download, steps_to_
     #steps_to_download2 = [str(i)+'-'+str(i+24) for i in steps_to_download]
 
     ### LOAD DATA
-    data_allpoints = get_allvars_allpoints(initial_date, steps_to_download, steps_to_download2)
+    data_allpoints = get_allvars_allpoints(initial_date, stepsdict, variables)
     data_allpoints['skt']['Value'] = data_allpoints['skt']['Value'] - 273.15
     data_allpoints['msl']['Value'] = data_allpoints['msl']['Value']/100
     #print('Printing map...')
@@ -252,7 +243,7 @@ def map_s5(initial_latlon, initial_date, avg_track, steps_to_download, steps_to_
         zoom = 2,
     )
 
-    p1, p2, p3, p4 = get_initial_plot(data_allpoints, initial_date, initial_latlon, steps_to_download)
+    p1, p2, p3, p4 = get_initial_plot(data_allpoints, initial_date, initial_latlon, stepsdict["base"])
     
     item_layout = widgets.Layout(overflow_y='scroll', width='350px', height='350px',
                                flex_flow='column', display='block')
@@ -262,7 +253,7 @@ def map_s5(initial_latlon, initial_date, avg_track, steps_to_download, steps_to_
 
     marker = ipyleaflet.Marker(location=initial_latlon, draggable=True, name = 'Position') 
     m.add_layer(marker)
-    marker.on_move(handle_move(data_allpoints, steps_to_download))
+    marker.on_move(handle_move(data_allpoints, stepsdict["base"]))
 
 
     m.add(widget_control1)
