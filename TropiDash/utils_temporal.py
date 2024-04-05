@@ -1,6 +1,4 @@
-from bqplot import Lines, Figure, LinearScale, Axis, DateScale
-import bqplot
-from datetime import datetime
+from bqplot import Lines, Bars, Figure, LinearScale, Axis, DateScale
 import ipyleaflet
 import ipywidgets as widgets
 import pandas as pd
@@ -113,19 +111,19 @@ def get_plot(ds_3var, ds_fgg, position):
     tp = df_3var['tp'].values
     msl = df_3var['msl'].values
     skt = df_3var['skt'].values
-    lines_tp = bqplot.Bars(x=xdata_3vars, y=tp, colors='blue',
+    lines_tp = Bars(x=xdata_3vars, y=tp, colors='blue',
                            scales={'x':DateScale(min=np.datetime64(xdata_3vars[0]), max=np.datetime64(xdata_3vars[-1])),
                                    'y': LinearScale(min=0, max=float(tp.max()))})
-    lines_msl = bqplot.Lines(x=xdata_3vars, y=msl, colors='orange',
+    lines_msl = Lines(x=xdata_3vars, y=msl, colors='orange',
                              scales={'x':DateScale(min=np.datetime64(xdata_3vars[0]), max=np.datetime64(xdata_3vars[-1])),
                                      'y': LinearScale(min=float(msl.min()), max=float(msl.max()))})
-    lines_skt = bqplot.Lines(x=xdata_3vars, y=skt, colors='red',
+    lines_skt = Lines(x=xdata_3vars, y=skt, colors='red',
                              scales={'x':DateScale(min=np.datetime64(xdata_3vars[0]),max=np.datetime64(xdata_3vars[-1])),
                                      'y': LinearScale(min=float(skt.min()), max=float(skt.max()))})
     
     xdata_fgg = df_fgg['date'].values
     fgg = df_fgg['10fgg25'].values
-    lines_fgg = bqplot.Bars(x=xdata_fgg, y=fgg, colors='green',
+    lines_fgg = Bars(x=xdata_fgg, y=fgg, colors='green',
                             scales={'x':DateScale(min=np.datetime64(xdata_fgg[0]),max=np.datetime64(xdata_fgg[-1])),
                                     'y': LinearScale(min=0, max=float(fgg.max()))})
     
