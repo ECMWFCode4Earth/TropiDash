@@ -71,7 +71,7 @@ To better understand how the data are processed and how the interactive plots ar
 
 ## Section 2 - Atmospherical variables
 
-This Secton's goal is to provide the user the possibility to visualize forecasts of atmospheric variables related to cyclone formation and forecasting. The variables are plotted at user-selected time steps ahead from the user-selected date. The tutorial for this Section usage is provided at [tutorials/Section2_Atmospheric_Variables_Tutorial.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/Section2_Atmospheric_Variables_Tutorial.ipynb)
+This Secton's goal is to provide the user the possibility to visualize forecasts of atmospheric variables related to cyclone formation and forecasting. The variables are plotted at user-selected time steps ahead from the user-selected date. The tutorial for this Section usage is provided at __[tutorials/Section2_Atmospheric_Variables_Tutorial.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/Section2_Atmospheric_Variables_Tutorial.ipynb)__.
 
 ### Data sources
 
@@ -157,17 +157,21 @@ The plotting function is provided at __[TropiDashutils_section4.py](https://gith
 
 ## Section 5 - Point-Wise Temporal Evolution of Atmospheric Variable
 
-Section 5 enables the possibility to plot the evolution of a forectasted value (accumulated precipitation, mean sea level pressure, skin temperature, and probability of wind gusts of more than 25 m/s at 10 m) in a user-specified point on the map.
+This section introduces the possibility to visualize the forecasted evolution of key atmospheric variables over time. Users are empowered to generate plots for a selection of critical variables, including accumulated precipitation, mean sea level pressure, skin temperature, and the probability of wind gusts exceeding 25 m/s at a 10-meter height. This functionality is designed to offer insights into the forecasted conditions at any user-specified location on the map, providing a tool for detailed weather analysis.
 
-The tutorial for this Section usage is provided at [tutorials/Section5_Temporal_Evolution_Tutorial.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/Section4_Temporal_Evolution_Tutorial.ipynb)
+The tutorial for this Section is provided at [tutorials/Section5_Temporal_Evolution_Tutorial.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/Section4_Temporal_Evolution_Tutorial.ipynb)
 
 ### Data sources
 
-The data source of variables used in this section is ECMWF's Open Data catalog, the same explained in [Section 2](#section-2---atmospherical-variables). The variables displayed in this section are the accumulated precipitation, mean sea level pressure, skin temperature, and probability of wind gusts of more than 25 m/s at 10 meters.
+The variables plotted in this section are sourced from the ECMWF's Open Data catalog, as detailed in [Section 2](#section-2---atmospherical-variables). This section includes data on accumulated precipitation, mean sea level pressure, skin temperature, and the probability of experiencing wind gusts exceeding 25 m/s at a height of 10 meters.
 
 ### Plot
 
-In this section, users can find a background map, a marker and the temporal evolution on the marker position of the accumulated precipitation, mean sea level pressure, skin temperature, and probability of wind gusts of more than 25 m/s at 10 m, from the first day of the selected cyclone until the last one. The red-lashed line represents the average track of the tracks given by the ensembles. The plots are automatically uploaded every time the user moves the pointer location. Please notice that it may take a few seconds to upload the plots. The first variable displayed is the daily accumulated precipitation and the other ones appear on scrolling down on the white box. The interactive map is deployed through [`ipyleaflet`](https://ipyleaflet.readthedocs.io/en/latest/index.html).
+Within this section, users are presented with an interactive background map that includes a movable marker. By positioning this marker, users can visually explore the temporal progression of the four atmospheric variables at the chosen location: accumulated precipitation, mean sea level pressure, skin temperature, and the probability of wind gusts surpassing 25 m/s at a height of 10 meters. This exploration spans from the inception to the conclusion of the selected cyclone event. A distinctive red-dashed line illustrates the average trajectory derived from ensemble forecasts.
+
+As the marker is relocated across the map, the plots for these variables are dynamically updated, ensuring the most relevant data is always at the user's fingertips. Initially, the plot displayed will show the daily accumulated precipitation; further variables can be viewed by scrolling within the dedicated white box area.
+
+This interactive experience is powered by [`ipyleaflet`](https://ipyleaflet.readthedocs.io/en/latest/index.html), a python library that delivers a user-friendly and engaging mapping interface.
 
 ### Functions
-To better understand how the data are processed and how the interactive plots are produced please refer to the python script containing the functions for this section: __[TropiDash/utils_TemporalEvolution.py](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/utils_TemporalEvolution.py)__.
+To better understand how the data are processed and how the interactive plots are produced please refer to the python script containing the functions for this section: __[TropiDash/utils_TemporalEvolution.py](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/utils_temporal.py)__.
