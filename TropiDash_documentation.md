@@ -174,4 +174,5 @@ As the marker is relocated across the map, the plots for these variables are dyn
 This interactive experience is powered by [`ipyleaflet`](https://ipyleaflet.readthedocs.io/en/latest/index.html), a python library that delivers a user-friendly and engaging mapping interface.
 
 ### Functions
-To better understand how the data are processed and how the interactive plots are produced please refer to the python script containing the functions for this section: __[TropiDash/utils_TemporalEvolution.py](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/utils_temporal.py)__.
+
+For a comprehensive insight into the data processing techniques and the creation of the interactive plots featured in this section, we encourage you to consult the Python script that houses the relevant functions: __[TropiDash/utils_TemporalEvolution.py](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/TropiDash/utils_temporal.py)__.

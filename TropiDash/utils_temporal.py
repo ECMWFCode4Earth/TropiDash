@@ -13,7 +13,7 @@ def get_forecast_datasets(initial_date, stepsdict, variables):
     - Mean sea level pressure
     - Skin temperature
     - Total precipitation
-    - 10m Wind gusts over 25 knots
+    - Probability of 10m Wind gusts over 25 knots
 
     initial_date: str
         date of the forecast in format %Y%m%d
