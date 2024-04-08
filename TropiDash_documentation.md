@@ -112,17 +112,15 @@ Data for this Section is downloaded from the following sources:
 - Coastal hazard for different return periods: https://datacatalog.worldbank.org/search/dataset/0038579/Global-coastal-flood-hazard
 - Cyclone hazard for different return periods: https://datacatalog.worldbank.org/search/dataset/0038577/Global-cyclone-hazard
 - Population count (1 x 1 km cells): https://hub.worldpop.org/geodata/summary?id=24777
-<!-- - Exposition Indexes: https://data.humdata.org/dataset/1efb6ee7-051a-440f-a2cf-e652fecccf73 -->
 
-Population count raster was resampled to pixels of 10x10 km using QGIS, then passed through a function explained in [tutorials/X1_Download_population_data.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/X1_Download_population_data.ipynb) ("Fix nodata issue" section).
+Population count raster was resampled to pixels of 10x10 km using QGIS, then passed through a function explained in [tutorials/X1_Download_population_data.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/X1_Download_population_data.ipynb) ("Fix nodata issue" section). Then the data was divided by the pixel area to obtain the population density in each cell.
 
 ### Plot
 
 The plot is an interactive map deployed through [`ipyleaflet`](https://ipyleaflet.readthedocs.io/en/latest/index.html) and showing a list of layers. The layers can be selected and de-selected, the plot can be panned and zoomed and visualized in full-screen mode. The available layers are:
  - Cyclone hazard: ipyleaflet's `Tile layer` showing cyclone hazard for a selected return period;
  - Coastal hazard: ipyleaflet's `Tile layer` showing coastal hazard for a selected return period;
- - Population: ipyleaflet's `Tile layer` showing population count in 10 km x 10 km cells;
- - Tsunamis, Coastal floods and Sea level rise Exposition Indexes: ipyleaflet's `Choropleth layer` showing each country's exposition index.
+ - Population: ipyleaflet's `Tile layer` showing population density in 10 km x 10 km cells;
 
 Two widgets are shown to make the user choose which return period to assign to the layers of cyclone and coastal hazards.
 
@@ -138,7 +136,7 @@ To make the user able to visualize easier cyclone, atmospheric and impact variab
 - Cyclone's average forecasted track
 - Strike probability map
 - All atmospheric variables of Section 2
-- Population count
+- Population density
 - Cyclone and coastal hazard
 
 The tutorial for this Section usage is provided at [tutorials/Section4_Joint_Visualization_tutorial.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/Section4_Joint_Visualization_tutorial.ipynb)
