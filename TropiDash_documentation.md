@@ -155,17 +155,17 @@ The plotting function is provided at __[TropiDashutils_section4.py](https://gith
 
 ## Section 5 - Point-Wise Temporal Evolution of Atmospheric Variable
 
-This section introduces the possibility to visualize the forecasted evolution of key atmospheric variables over time. Users are empowered to generate plots for a selection of critical variables, including accumulated precipitation, mean sea level pressure, skin temperature, and the probability of wind gusts exceeding 25 m/s at a 10-meter height. This functionality is designed to offer insights into the forecasted conditions at any user-specified location on the map, providing a tool for detailed weather analysis.
+This section introduces the possibility to visualize the forecasted evolution of key atmospheric variables over time. Users are empowered to generate plots for a selection of critical variables, including accumulated precipitation, mean sea level pressure, skin temperature, the wind speed at 10-meter height and the probability of wind gusts exceeding 25 m/s at 10-meter height. This functionality is designed to offer insights into the forecasted conditions at any user-specified location on the map, providing a tool for detailed weather analysis.
 
 The tutorial for this Section is provided at [tutorials/Section5_Temporal_Evolution_Tutorial.ipynb](https://github.com/ECMWFCode4Earth/TropiDash/blob/main/tutorials/Section4_Temporal_Evolution_Tutorial.ipynb)
 
 ### Data sources
 
-The variables plotted in this section are sourced from the ECMWF's Open Data catalog, as detailed in [Section 2](#section-2---atmospherical-variables). This section includes data on accumulated precipitation, mean sea level pressure, skin temperature, and the probability of experiencing wind gusts exceeding 25 m/s at a height of 10 meters.
+The variables plotted in this section are sourced from the ECMWF's Open Data catalog, as detailed in [Section 2](#section-2---atmospherical-variables). This section includes data on accumulated precipitation, mean sea level pressure, skin temperature, the wind speed at 10-meters height, and the probability of experiencing wind gusts exceeding 25 m/s at a height of 10 meters.
 
 ### Plot
 
-Within this section, users are presented with an interactive background map that includes a movable marker. By positioning this marker, users can visually explore the temporal progression of the four atmospheric variables at the chosen location: accumulated precipitation, mean sea level pressure, skin temperature, and the probability of wind gusts surpassing 25 m/s at a height of 10 meters. This exploration spans from the inception to the conclusion of the selected cyclone event. A distinctive red-dashed line illustrates the average trajectory derived from ensemble forecasts.
+Within this section, users are presented with an interactive background map that includes a movable marker. By positioning this marker, users can visually explore the temporal progression of the four atmospheric variables at the chosen location: accumulated precipitation, mean sea level pressure, skin temperature, wind speed at 10-meters height and the probability of wind gusts surpassing 25 m/s at height of 10 meters. This exploration spans from the inception to the conclusion of the selected cyclone event. A distinctive red-dashed line illustrates the average trajectory derived from ensemble forecasts.
 
 As the marker is relocated across the map, the plots for these variables are dynamically updated, ensuring the most relevant data is always at the user's fingertips. Initially, the plot displayed will show the daily accumulated precipitation; further variables can be viewed by scrolling within the dedicated white box area.
 
